@@ -68,6 +68,8 @@ CREATE TABLE cf_spaces
 (
   id         CHAR(12) NOT NULL
   COMMENT '空间 ID',
+  name       VARCHAR(255) NOT NULL
+  COMMENT '空间名称',
   org_id     CHAR(21) NULL
   COMMENT '组织 ID',
   created_by CHAR(21) NOT NULL
