@@ -1,18 +1,18 @@
 /* eslint-disable no-undef,new-cap */
 const typeDef = `
   type User {
-    id: Int!
-    login: String!
+    id: ID!
+    login: String
+    email: String!
     password: String!
-    nicename: String
-    url: String
-    registered: String
-    activationKey: String
-    status: Int
     displayName: String
-    spam: Int
-    deleted: Int
+    activated: Boolean
+    confirmed: Boolean
+    activationKey: String
+    deleted: Boolean
     phone: String
+    createdAt: String
+    updatedAt: String
   }
   extend type Query {
     all(take: Int, skip: Int, userId: Int): [User]

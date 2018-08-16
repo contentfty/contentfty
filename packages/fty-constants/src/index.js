@@ -1,0 +1,20 @@
+export const BLOCK_TYPES = {
+  SIMPLE_TEXT: 'symbol',
+  TEXT: 'text',
+  MARKDOWN: 'MARKDOWN',
+  BOOLEAN: 'BOOLEAN',
+  MEDIA: 'MEDIA',
+  DOCUMENT: 'DOCUMENT',
+  NUMBER: 'NUMBER',
+  DATE: 'DATE',
+  COLOR: 'COLOR',
+  LINK: 'LINK',
+  LOCATION: 'LOCATION',
+  GROUP: 'GROUP',
+  LIST: 'LIST'
+}
+
+export const FILE_TYPES = {
+  DOCUMENT: 'DOCUMENT',
+  FOLDER: 'FOLDER'
+}

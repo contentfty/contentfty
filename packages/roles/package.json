@@ -1,0 +1,27 @@
+{
+  "name": "@fty/roles",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "prepublishOnly": "npm run test",
+    "version": "git add .",
+    "preversion": "npm test",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contentfty/roles.git"
+  },
+  "author": "Baisheng <baisheng@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/contentfty/roles/issues"
+  },
+  "homepage": "https://github.com/contentfty/roles#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^21.2.1"
+  }
+}

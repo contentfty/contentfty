@@ -1,19 +1,19 @@
 /* eslint-disable no-return-await,no-undef */
 module.exports = class extends think.Model {
-  get relation () {
-    return {
-      metas: {
-        type: think.Model.HAS_MANY,
-        model: 'orgmeta',
-        fKey: 'org_id'
-      },
-      apps: {
-        type: think.Model.HAS_MANY,
-        model: 'apps',
-        fKey: 'org_id'
-      }
-    };
-  }
+  // get relation () {
+  //   return {
+  //     metas: {
+  //       type: think.Model.HAS_MANY,
+  //       model: 'orgmeta',
+  //       fKey: 'org_id'
+  //     },
+  //     apps: {
+  //       type: think.Model.HAS_MANY,
+  //       model: 'apps',
+  //       fKey: 'org_id'
+  //     }
+  //   };
+  // }
 
   async get () {
     const orgs = await this.list();

@@ -1,0 +1,26 @@
+{
+  "name": "@tipe/tipe-fetch",
+  "version": "0.1.2",
+  "description": "Frontend library that talks to Tipe's api",
+  "main": "build/lib/index.js",
+  "author": "tipe.io",
+  "license": "MIT",
+  "scripts": {
+    "release": "yarn build && npx np",
+    "build": "yarn webpack --config build/configs/webpack.prod.conf.js",
+    "build:dev": "yarn webpack --config build/configs/webpack.dev.conf.js"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "faker": "^4.1.0",
+    "np": "^3.0.4",
+    "webpack": "^4.15.1",
+    "webpack-cli": "^3.0.8",
+    "webpack-merge": "^4.1.3"
+  },
+  "dependencies": {
+    "@tipe/tipe-test-utils": "^0.1.0"
+  }
+}

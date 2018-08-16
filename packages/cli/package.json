@@ -1,0 +1,43 @@
+{
+  "name": "@fty/cli",
+  "version": "0.0.1",
+  "description": "Fty CLI",
+  "main": "src/index.js",
+  "bin": {
+    "fty": "./bin/fty"
+  },
+  "scripts": {
+    "lint": "eslint src/**",
+    "test": "jest ./test/**",
+    "ci": "npm run lint && npm run test"
+  },
+  "author": "baisheng",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "change-case": "^3.0.2",
+    "commander": "^2.14.1",
+    "configstore": "^3.1.1",
+    "ejs": "^2.6.1",
+    "fs-extra": "^7.0.0",
+    "fs.promised": "^3.0.0",
+    "inquirer": "^5.1.0",
+    "json-stable-stringify": "^1.0.1",
+    "node-fetch": "^2.0.0",
+    "prompt": "^1.0.0",
+    "shelljs": "^0.8.2",
+    "write-file-atomic": "^2.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.3.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-jest": "^21.18.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-prettier": "^2.6.2",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "jest": "^23.4.2",
+    "prettier": "^1.14.0"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "fields": [
+    {
+      "id": "name",
+      "name": "Name",
+      "type": "Symbol",
+      "localized": false,
+      "required": true,
+      "validations": [],
+      "disabled": false,
+      "omitted": false
+    },
+    {
+      "id": "title",
+      "name": "Title",
+      "type": "Symbol",
+      "localized": false,
+      "required": true,
+      "validations": [],
+      "disabled": false,
+      "omitted": false
+    },
+    {
+      id: "company",
+      name: "Company",
+      type: "Symbol",
+      localized: false,
+      required: true,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "shortBio",
+      name: "Short Bio",
+      type: "Text",
+      localized: false,
+      required: true,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "email",
+      name: "Email",
+      type: "Symbol",
+      localized: false,
+      required: false,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "phone",
+      name: "Phone",
+      type: "Symbol",
+      localized: false,
+      required: false,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "facebook",
+      name: "Facebook",
+      type: "Symbol",
+      localized: false,
+      required: false,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "twitter",
+      name: "Twitter",
+      type: "Symbol",
+      localized: false,
+      required: false,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "github",
+      name: "Github",
+      type: "Symbol",
+      localized: false,
+      required: false,
+      validations: [],
+      disabled: false,
+      omitted: false
+    },
+    {
+      id: "image",
+      name: "Image",
+      type: "Link",
+      localized: false,
+      required: false,
+      validations: [],
+      disabled: false,
+      omitted: false,
+      linkType: "Asset"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
-  "name": "gqldemo",
-  "description": "application created by thinkjs",
+  "name": "contentfty",
+  "description": "Content factory application",
   "version": "1.0.0",
-  "author": "NimitzDEV <isnimitz@gmail.com>",
+  "author": "ContentFTY",
   "scripts": {
     "start": "node development.js",
     "test": "THINK_UNIT_TEST=1 nyc ava test/ && nyc report --reporter=html",
@@ -14,10 +14,12 @@
     "bcrypt": "^3.0.0",
     "crypto": "^1.0.1",
     "graphql": "^0.13.2",
+    "graphql-tag": "^2.9.2",
     "graphql-tools": "^3.0.5",
     "jsonwebtoken": "^8.3.0",
     "koa-jwt": "^3.3.2",
     "koa-passport": "^4.1.0",
+    "lerna": "^2.11.0",
     "limax": "^1.6.0",
     "nanoid": "^1.2.0",
     "passport": "^0.4.0",
@@ -46,25 +48,30 @@
     "eslint": "^4.2.0",
     "eslint-config-think": "^1.0.0",
     "eslint-plugin-html": "^4.0.5",
+    "np": "^3.0.4",
     "nyc": "^7.0.0",
-    "think-watcher": "^3.0.0"
+    "think-watcher": "^3.0.0",
+    "webpack-cli": "^3.1.0"
   },
   "repository": "",
-  "license": "MIT",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.0.0"
   },
+  "private": true,
   "readmeFilename": "README.md",
   "thinkjs": {
     "metadata": {
-      "name": "gqldemo",
-      "description": "application created by thinkjs",
-      "author": "NimitzDEV <isnimitz@gmail.com>",
+      "name": "contentfty",
+      "description": "Content factory application",
+      "version": "1.0.0",
+      "author": "ContentFTY",
       "babel": false
     },
-    "projectName": "gqldemo",
-    "template": "C:\\Users\\isnim\\AppData\\Roaming\\npm\\node_modules\\think-cli\\default_template",
+    "projectName": "contentFty",
     "clone": false,
     "isMultiModule": false
-  }
+  },
+  "workspaces": [
+    "packages/fty-constants"
+  ]
 }

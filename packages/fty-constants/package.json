@@ -1,0 +1,21 @@
+{
+  "name": "@fty/fty-constants",
+  "version": "0.0.1",
+  "description": "Content Factory Constants",
+  "main": "build/lib/index.js",
+  "author": "contentfty.com",
+  "license": "MIT",
+  "scripts": {
+    "release": "yarn build && yarn np",
+    "build": "yarn webpack --config build/configs/webpack.prod.conf.js",
+    "build:dev": "yarn webpack --config build/configs/webpack.dev.conf.js"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "np": "^3.0.4",
+    "webpack": "^4.15.1",
+    "webpack-cli": "^3.0.8",
+    "webpack-merge": "^4.1.3"
+  }
+}
