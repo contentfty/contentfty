@@ -32,7 +32,6 @@ const resolvers = {
   Mutation: {
     createSpace: async (prev, args, context) => {
       const userId = context.user.id
-      console.log(userId)
       // 验证组织 ID
       const orgModel = think.model('orgs')
       const originOrg = await orgModel.where({id: args.orgId}).field(['id']).find()
