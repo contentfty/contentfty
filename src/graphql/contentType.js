@@ -31,6 +31,9 @@ const resolvers = {
       const entryTypeModel = think.model('entrytypes', {spaceId: context.spaceId})
       const typeId = args.id
       const oneData = await entryTypeModel.where({id: typeId}).find()
+      oneData.createdBy = await think.model('users').where({id: context.user.id}).find()
+      oneData.updatedBy = await think.model('users').where({id: context.user.id}).find()
+
       const fieldModel = think.model('fields', {spaceId: context.spaceId})
       oneData.fields = JSON.parse(oneData.fields)
       if (oneData.fields.length > 0) {

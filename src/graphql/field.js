@@ -14,7 +14,6 @@ const typeDef = `
   }
   type Field {
     id: String!
-    typeId: String!
     name: String!
     instructions: String
     type: String!
@@ -27,8 +26,8 @@ const typeDef = `
     updatedAt: String
   }
   input FieldInput {
-    typeId: String!
     id: String!
+    typeId: String!
     name: String!
     type: FieldType!
     instructions: String

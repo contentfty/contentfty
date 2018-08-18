@@ -1,12 +1,12 @@
 module.exports = class extends think.Model {
   constructor (...args) {
     super(...args);
-    this.spaceId = this.config.spaceId !== undefined || !think.isEmpty(this.config.spaceId) ? this.config.spaceId : '';
+    this.spaceId = this.config.spaceId !== undefined || !think.isEmpty(this.config.spaceId) ? this.config.spaceId + '_' : '';
     // this.prefix = '';
-    // if (this.spaceId !== undefined || !think.isEmpty(this.spaceId)) {
-    //   this.prefix = this.spaceId;
-    //   this.spaceId = this.spaceId + '_';
-    // }
+    if (this.spaceId !== undefined || !think.isEmpty(this.spaceId)) {
+      this.prefix = this.spaceId;
+      // this.spaceId = this.spaceId + '_';
+    }
     // this.prefix = 'picker_' + this.appId + '_'
   }
 
