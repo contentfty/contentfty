@@ -15,6 +15,18 @@ module.exports = class extends Base {
   //   }
   // }
 
+  /**
+   * 归属于内容类型的字段列表
+   * @param typeId
+   * @returns {Promise<*>}
+   */
+  async list (typeId) {
+    const fields = await this.where({
+      typeId: typeId
+    }).select()
+
+    return fields
+  }
   async findByGroupId(groupId, page, pageSize) {
     // console.log(groupId)
     // query = think._.omit(query, ['appId']);

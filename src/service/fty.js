@@ -113,5 +113,8 @@ module.exports = class extends think.Service {
     }
   }
 
+  async createContentType () {
+    // const newType = await entryTypeModel.save(entryType, context.user.id)
+  }
 }
 
