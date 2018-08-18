@@ -4,6 +4,7 @@ const {typeDef: Org, resolvers: orgResolvers} = require('./org')
 const {typeDef: Auth, resolvers: authResolvers} = require('./auth')
 const {typeDef: User, resolvers: userResolvers} = require('./users')
 const {typeDef: Space, resolvers: spaceResolvers} = require('./space')
+const {typeDef: Entry, resolvers: entryResolvers} = require('./entry')
 
 const {makeExecutableSchema} = require('graphql-tools');
 const Scalar = `
@@ -27,7 +28,8 @@ module.exports = makeExecutableSchema({
     Org,
     Auth,
     User,
-    Space
+    Space,
+    Entry
   ],
   resolvers: think._.merge(
     resolvers,
@@ -36,6 +38,7 @@ module.exports = makeExecutableSchema({
     orgResolvers,
     authResolvers,
     userResolvers,
-    spaceResolvers
+    spaceResolvers,
+    entryResolvers
   )
 });
