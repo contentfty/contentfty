@@ -55,9 +55,9 @@ const resolvers = {
       const orgModel = think.model('orgs')
 
       const insertIds = await elementsModel.addMany([
-        {id: userId, type: think.elementType.user, created_at: dateNow(), updated_at: dateNow()},
-        {id: orgId, type: think.elementType.org, created_at: dateNow(), updated_at: dateNow()},
-        {id: spaceId, type: think.elementType.space, created_at: dateNow(), updated_at: dateNow()},
+        {id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow()},
+        {id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow()},
+        {id: spaceId, type: think.elementType.space, createdAt: dateNow(), updatedAt: dateNow()},
       ])
 
       if (insertIds.length === 3) {
@@ -73,19 +73,19 @@ const resolvers = {
         await orgModel.add({
           id: orgId,
           name: slugName(user.org),
-          created_by: userId,
-          updated_by: userId,
-          created_at: dateNow(),
-          updated_at: dateNow()
+          createdBy: userId,
+          updatedBy: userId,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
         })
 
         await spaceModel.add({
           id: spaceId,
-          org_id: orgId,
-          created_by: userId,
-          updated_by: userId,
-          created_at: dateNow(),
-          updated_at: dateNow()
+          orgId: orgId,
+          createdBy: userId,
+          updatedBy: userId,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
         })
       }
 
@@ -98,19 +98,19 @@ const resolvers = {
         await spaceElementsModel.addMany([{
           id: userId,
           type: ElementType.user,
-          created_at: dateNow(),
-          updated_at: dateNow()
+          createdAt: dateNow(),
+          updatedAt: dateNow()
         }, {
           id: 'master',
           type: ElementType.env,
-          created_at: dateNow(),
-          updated_at: dateNow()
+          createdAt: dateNow(),
+          updatedAt: dateNow()
         }])
         // 创建环境
         const envModel = think.model('envs', {spaceId: spaceId})
         await envModel.add({
           id: 'master',
-          space_id: spaceId,
+          spaceId: spaceId,
           // FAILURE
           // PENDING
           // READY

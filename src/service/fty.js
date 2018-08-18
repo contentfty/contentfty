@@ -104,8 +104,8 @@ module.exports = class extends think.Service {
       await elementModel.add({
         id: typeId,
         type: type,
-        created_at: dateNow(),
-        updated_at: dateNow()
+        createdAt: dateNow(),
+        updatedAt: dateNow()
       })
       return typeId
     } catch (e) {

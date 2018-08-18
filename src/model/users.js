@@ -5,12 +5,12 @@ const bcrypt = require('bcrypt');
 
 let fields = [
   'id',
-  'user_login as login',
+  'login',
   // 'user_pass as pass',
-  'user_nicename as nicename',
-  'user_email as email',
+  'displayName',
+  'email',
   // 'user_url as url',
-  'user_status as status'
+  'status'
 ]
 module.exports = class extends think.Model {
 
@@ -19,8 +19,8 @@ module.exports = class extends think.Model {
       metas: {
         type: think.Model.HAS_MANY,
         model: 'usermeta',
-        fKey: 'user_id',
-        field: "user_id,meta_key,meta_value"
+        fKey: 'userId',
+        field: "userId,metaKey,metaValue"
       }
     }
   }
@@ -93,11 +93,11 @@ module.exports = class extends think.Model {
    * @param user_id
    * @returns {Promise.<void>}
    */
-  async getById (user_id) {
-    const user = await this.field(['id, user_login, user_nicename, user_email, user_status']).where({
-      id: user_id
+  async getById (userId) {
+    let user = await this.where({
+      id: userId
     }).find()
-    const meta = await this.model('usermeta').where({user_id: user_id}).select()
+    const meta = await this.model('usermeta').where({userId: userId}).select()
     user.metas = meta
     return user
   }

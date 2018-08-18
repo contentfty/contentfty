@@ -25,7 +25,7 @@ module.exports = class extends BaseRest {
     if (!userModel.checkPassword(userInfo.password, data.password)) {
       return this.fail(400, 'ACCOUNT_PASSWORD_ERROR');
     }
-    const token = await think.service('auth_service').generateToken({
+    const token = await think.service('authService').generateToken({
       id: userInfo.id
       // email: userInfo.email,
       // displayName: userInfo.display_name
@@ -56,9 +56,9 @@ module.exports = class extends BaseRest {
         id: userId,
         email: data.email,
         password: userModel.getEncryptPassword(data.password),
-        display_name: data.display_name,
-        created_at: dateNow(),
-        updated_at: dateNow()
+        displayName: data.displayName,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
       }
 
       // 2 添加用户
@@ -69,22 +69,22 @@ module.exports = class extends BaseRest {
       await orgModel.add({
         id: orgId,
         name: data.org,
-        created_by: userId,
-        updated_by: userId,
-        created_at: dateNow(),
-        updated_at: dateNow()
+        createdBy: userId,
+        updatedBy: userId,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
       })
 
       // 4 关联组织用户
       const role = 'owner'
       const usermeta = this.model('usermeta')
       await usermeta.add({
-        user_id: userId,
-        meta_key: `org_${orgId}_capabilities`,
-        meta_value: JSON.stringify({'role': role, 'type': 'org'})
+        userId: userId,
+        metaKey: `org_${orgId}_capabilities`,
+        metaValue: JSON.stringify({'role': role, 'type': 'org'})
       })
       // return this.success(newUser.password)
-      const token = await think.service('auth_service').generateToken({
+      const token = await think.service('authService').generateToken({
         id: userId,
         email: newUser.email,
         displayName: newUser.display_name
@@ -103,7 +103,7 @@ module.exports = class extends BaseRest {
       post.meta = {};
       if (post.metas.length > 0) {
         for (const meta of post.metas) {
-          post.meta[meta.meta_key] = meta.meta_value;
+          post.meta[meta.metaKey] = meta.metaValue;
         }
       }
       delete post.metas;

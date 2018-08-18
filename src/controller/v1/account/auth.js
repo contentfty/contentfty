@@ -25,9 +25,9 @@ module.exports = class extends BaseRest {
         id: userId,
         email: data.email,
         password: bcrypt.hashSync(data.password, 10),
-        display_name: data.display_name,
-        created_at: dateNow(),
-        updated_at: dateNow()
+        displayName: data.displayName,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
       }
       // 2 添加用户
       await userModel.add(newUser)
@@ -36,19 +36,19 @@ module.exports = class extends BaseRest {
       await orgModel.add({
         id: orgId,
         name: data.org,
-        created_by: userId,
-        updated_by: userId,
-        created_at: dateNow(),
-        updated_at: dateNow()
+        createdBy: userId,
+        updatedBy: userId,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
       })
 
       // 4 关联组织用户
       const role = 'owner'
       const usermeta = this.model('usermeta')
       await usermeta.add({
-        user_id: userId,
-        meta_key: `org_${orgId}_capabilities`,
-        meta_value: JSON.stringify({'role': role, 'type': 'org'})
+        userId: userId,
+        metaKey: `org_${orgId}_capabilities`,
+        metaValue: JSON.stringify({'role': role, 'type': 'org'})
       })
       return this.success(newUser.password)
       // const token = await think.service('auth_service').createToken(newUser.email, newUser.password)
@@ -131,7 +131,7 @@ module.exports = class extends BaseRest {
       post.meta = {};
       if (post.metas.length > 0) {
         for (const meta of post.metas) {
-          post.meta[meta.meta_key] = meta.meta_value;
+          post.meta[meta.metaKey] = meta.metaValue;
         }
       }
       delete post.metas;
@@ -194,28 +194,28 @@ module.exports = class extends BaseRest {
       id: userId,
       email: data.email,
       password: bcrypt.hashSync(data.password, 10),
-      display_name: data.display_name,
-      created_at: dateNow(),
-      updated_at: dateNow()
+      displayName: data.displayName,
+      createdAt: dateNow(),
+      updatedAt: dateNow()
     })
     // 3 添加用户组织
     const orgModel = think.model('orgs')
     await orgModel.add({
       id: orgId,
       name: data.org,
-      created_by: userId,
-      updated_by: userId,
-      created_at: dateNow(),
-      updated_at: dateNow()
+      createdBy: userId,
+      updatedBy: userId,
+      createdAt: dateNow(),
+      updatedAt: dateNow()
     })
 
     // 4 关联组织用户
     const role = 'owner'
     const usermeta = this.model('usermeta')
     await usermeta.add({
-      user_id: userId,
-      meta_key: `org_${orgId}_capabilities`,
-      meta_value: JSON.stringify({'role': role, 'type': 'org'})
+      userId: userId,
+      metaKey: `org_${orgId}_capabilities`,
+      metaValue: JSON.stringify({'role': role, 'type': 'org'})
     })
     // 后续这里的用户简介可以处理与 resume 模型关联
     // if (!think.isEmpty(data.summary)) {
@@ -341,7 +341,7 @@ module.exports = class extends BaseRest {
     // const user = jwt.verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mbyI6eyJpZCI6MTUsInVzZXJfbG9naW4iOiJhZG1pbiIsInVzZXJfcGFzcyI6IiQyYSQwOCRybDFpb29TMHN3YW1uck1jL0dtU3VlTTh0MWRXdzB1bjdMaHhCdzkxRnRsNUNldG9iZVAzYSIsInVzZXJfbmljZW5hbWUiOiLnrqHnkIblkZgiLCJ1c2VyX2VtYWlsIjoiYmFpc2hlbmdAb3V0bG9vay5jb20iLCJ1c2VyX3VybCI6bnVsbCwidXNlcl9yZWdpc3RlcmVkIjoxNTAzODEwMzIwOTk2LCJ1c2VyX2FjdGl2YXRpb25fa2V5IjpudWxsLCJ1c2VyX3N0YXR1cyI6MSwiZGlzcGxheV9uYW1lIjpudWxsLCJzcGFtIjowLCJkZWxldGVkIjowLCJ1c2VyX3Bob25lIjpudWxsLCJtZXRhIjp7InBpY2tlcl8xX2NhcGFiaWxpdGllcyI6eyJyb2xlIjoiZWRpdG9yIn0sIm9yZ18xX2NhcGFiaWxpdGllcyI6eyJyb2xlIjoiYWRtaW4ifSwicGlja2VyXzFfd3hhcHAiOiIxIiwiYXZhdGFyIjoiMjMifSwiYXZhdGFyIjoiaHR0cDovL2RhdGEucGlja2VyLmNjL3VwbG9hZF82OGMwYjM5MjcxNzViNjIyN2EyMmQ2NjIxYjY2YjBjOS5qcGciLCJyb2xlIjoiYWRtaW4ifSwiaWF0IjoxNTA3ODgzMjM1LCJleHAiOjE1MDgxNDI0MzV9.CfdEENtA_NW6vLmZdNnpaUZf3eHJMC7hKiHTfxLv1Xc', 'S1BNbRp2b');
     // return this.success(user)
     // return this.success({user: userInfo.user_login, token: {value: token, expires: 3}});
-    return this.success({user: userInfo.user_login, token: token});
+    return this.success({user: userInfo.login, token: token});
     // return this.success({user: userInfo.user_login, token: {value: token, expires: 3}});
     // }
   }

@@ -55,27 +55,8 @@ const resolvers = {
     createContentType: async (prev, args, context) => {
       const entryTypeModel = think.model('entrytypes', {spaceId: context.spaceId})
       const entryType = args.entryType
-      // try {
-      await entryTypeModel.add({
-        id: entryType.id,
-        name: entryType.name,
-        // 必需默认添加 JSON 空数组，否则影响 fileds 的添加
-        fields: JSON.stringify([]),
-        createdBy: context.user.id,
-        updatedBy: context.user.id,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      })
-      const newType = await entryTypeModel.where({id: entryType.id}).find()
-      if (!think.isEmpty(newType)) {
-        // 待整合进 service
-        newType.createdBy = await think.model('users').where({id: newType.createdBy}).find()
-        newType.updatedBy = await think.model('users').where({id: newType.updatedBy}).find()
-      }
+      const newType = await entryTypeModel.save(entryType, context.user.id)
       return newType
-      // } catch (err) {
-      //   throw err
-      // }
     }
   }
 };
