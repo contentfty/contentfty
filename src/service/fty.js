@@ -98,7 +98,7 @@ module.exports = class extends think.Service {
    * @returns {Promise<*>}
    */
   async regElement (type) {
-    const elementModel = think.model('elements')
+    const elementModel = think.model('elements', {spaceId: this.spaceId})
     const typeId = type === ElementType.space ? Generate.spaceId() : Generate.id()
     try {
       await elementModel.add({

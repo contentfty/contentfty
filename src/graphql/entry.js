@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const typeDef = `
   type Entry {
     id: Int
@@ -18,15 +19,9 @@ const typeDef = `
   }
    
   input EntryInput {
-    data: Json
+    id: String
     typeId: String!
-    name: String!
-    instructions: String
-    unique: Boolean
-    required: Boolean
-    disabled: Boolean
-    validations: Json
-    settings: Json
+    data: Json
   }
   extend type Mutation {
     createEntry(typeId: String!, entry: EntryInput):Field
@@ -43,8 +38,14 @@ const resolvers = {
   },
   Mutation: {
     createEntry: async (prev, args, context) => {
+      let entry = args.entry
+      if (Object.is(entry.id, undefined)) {
+        entry.id = await think.service('fty').regElement(ElementType.entry)
+      }
+      const userId = context.user.id
       const typeId = args.typeId
-      const data = {
+      // fakeDATA
+      const fakeFieldsData = {
         "title": {
           "zh-CN": "这是一个标题"
         },
@@ -67,9 +68,18 @@ const resolvers = {
       }
       // 1 查询出规则
       const contentType = await think.model('entrytypes', {spaceId: context.spaceId}).getById(typeId)
-      // console.log(contentType)
       // 2 验证内容是否符合规则
+      // console.log(contentType)
+
       // 3 符合规则后存储内容
+      const entryModel = think.model('entries', {spaceId: context.spaceId})
+      // 4 根据状态保存内容，默认发布至 versions
+      await entryModel.save({
+        entryId: entry.id,
+        createdBy: userId,
+        typeId: typeId,
+        data: fakeFieldsData
+      })
     }
   }
 };
