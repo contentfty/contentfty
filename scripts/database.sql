@@ -52,11 +52,10 @@ DROP TABLE IF EXISTS `cf_entries`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `cf_entries` (
   `id` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '内容条目 ID',
-  `envId` varchar(100) COLLATE utf8_unicode_ci NOT NULL COMMENT '空间环境 ID',
+  `envId` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'master' COMMENT '空间环境 ID',
   `typeId` char(21) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '内容类型 ID',
-  `createdBy` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '创建者',
-  `updatedBy` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '更新者',
-  `publishedAt` datetime DEFAULT NULL COMMENT '发布时间',
+  `createdBy` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '作者',
+  `postDate` datetime DEFAULT NULL COMMENT '发布时间',
   `createdAt` datetime DEFAULT NULL COMMENT '创建时间',
   `updatedAt` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
@@ -82,8 +81,7 @@ DROP TABLE IF EXISTS `cf_entrydrafts`;
 CREATE TABLE `cf_entrydrafts` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '内容条目草稿自增主键 ID',
   `entryId` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '内容条目 ID',
-  `displayField` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '默认代表条目的字段',
-  `locale` char(12) COLLATE utf8_unicode_ci NOT NULL COMMENT '语言',
+  `createdBy` char(21) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '条目名称',
   `data` json NOT NULL COMMENT '条目内容',
   `createdAt` datetime NOT NULL COMMENT '创建时间',
@@ -126,6 +124,7 @@ CREATE TABLE `cf_entrytypes` (
 
 LOCK TABLES `cf_entrytypes` WRITE;
 /*!40000 ALTER TABLE `cf_entrytypes` DISABLE KEYS */;
+INSERT INTO `cf_entrytypes` VALUES ('cate','博客文章','[]','9NWpXSZHqZ9t1AXKFuZQz','9NWpXSZHqZ9t1AXKFuZQz','2018-08-18 11:56:56','2018-08-18 11:56:56'),('posts','博客文章','[\"title\"]','8NOH4Wl0lsKgNDcY8PEII','8NOH4Wl0lsKgNDcY8PEII','2018-08-18 11:57:26','2018-08-18 11:57:26');
 /*!40000 ALTER TABLE `cf_entrytypes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -139,12 +138,12 @@ DROP TABLE IF EXISTS `cf_entryversions`;
 CREATE TABLE `cf_entryversions` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '内容条目已发布的版本自增主键 ID',
   `entryId` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '内容条目 ID',
-  `displayField` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '默认代表条目的字段',
-  `locale` char(12) COLLATE utf8_unicode_ci NOT NULL COMMENT '语言',
-  `num` smallint(6) unsigned NOT NULL COMMENT '版本号',
-  `data` json NOT NULL COMMENT '条目内容',
+  `createdBy` char(21) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `fields` json NOT NULL COMMENT '条目内容',
+  `notes` tinytext COLLATE utf8_unicode_ci,
   `createdAt` datetime NOT NULL COMMENT '创建时间',
   `updatedAt` datetime NOT NULL COMMENT '更新时间',
+  `num` smallint(6) unsigned NOT NULL COMMENT '版本号',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -200,9 +199,10 @@ CREATE TABLE `cf_fields` (
   `required` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为必填',
   `disabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为只读状态',
   `validations` json DEFAULT NULL COMMENT '内容验证规则',
-  `createdAt` datetime NOT NULL,
-  `updatedAt` datetime NOT NULL,
   `settings` json DEFAULT NULL COMMENT '字段的外观配置',
+  `updatedAt` datetime NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `localized` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`,`typeId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -238,7 +238,7 @@ CREATE TABLE `cf_options` (
 
 LOCK TABLES `cf_options` WRITE;
 /*!40000 ALTER TABLE `cf_options` DISABLE KEYS */;
-INSERT INTO `cf_options` VALUES ('roles','[{\"administrator\": {\"name\": \"Administrator\", \"capabilities\": [{\"switch_themes\": true}, {\"edit_themes\": true}, {\"activate_plugins\": true}, {\"edit_plugins\": true}, {\"edit_users\": true}, {\"edit_files\": true}, {\"manage_options\": true}, {\"moderate_comments\": true}, {\"manage_categories\": true}, {\"manage_links\": true}, {\"upload_files\": true}, {\"import\": true}, {\"edit_posts\": true}, {\"edit_others_posts\": true}, {\"edit_published_posts\": true}, {\"edit_pages\": true}, {\"edit_other_pages\": true}, {\"edit_published_pages\": true}, {\"publish_pages\": true}, {\"delete_pages\": true}, {\"delete_others_pages\": true}, {\"delete_published_pages\": true}, {\"delete_posts\": true}, {\"delete_others_posts\": true}, {\"delete_published_posts\": true}, {\"delete_private_posts\": true}, {\"edit_private_posts\": true}, {\"read_private_posts\": true}, {\"delete_private_pages\": true}, {\"edit_private_pages\": true}, {\"read_private_pages\": true}, {\"delete_users\": true}, {\"create_users\": true}, {\"unfiltered_upload\": true}, {\"edit_dashboard\": true}, {\"update_plugins\": true}, {\"delete_plugins\": true}, {\"install_plugins\": true}, {\"update_themes\": true}, {\"install_themes\": true}, {\"update_core\": true}, {\"list_users\": true}, {\"remove_users\": true}, {\"add_users\": true}, {\"promote_users\": true}, {\"edit_theme_options\": true}, {\"delete_themes\": true}, {\"export\": true}]}}, {\"contributor\": {\"name\": \"Contributor\", \"capabilities\": [{\"delete_pages\": true}, {\"delete_others_pages\": true}, {\"delete_published_pages\": true}, {\"delete_posts\": true}]}}, {\"editor\": {\"name\": \"Editor\", \"capabilities\": [{\"read\": true}, {\"moderate_comments\": true}, {\"manage_categories\": true}, {\"manage_links\": true}, {\"upload_files\": true}, {\"unfiltered_html\": true}, {\"edit_posts\": true}, {\"edit_others_posts\": true}, {\"edit_published_posts\": true}, {\"publish_posts\": true}, {\"edit_pages\": true}, {\"edit_others_pages\": true}, {\"edit_published_pages\": true}, {\"publish_pages\": true}, {\"delete_pages\": true}, {\"delete_others_pages\": true}, {\"delete_published_pages\": true}, {\"delete_posts\": true}, {\"delete_others_posts\": true}, {\"delete_published_posts\": true}, {\"delete_private_posts\": true}, {\"edit_private_posts\": true}, {\"read_private_posts\": true}, {\"delete_private_pages\": true}, {\"edit_private_pages\": true}, {\"read_private_pages\": true}]}}, {\"author\": {\"name\": \"Author\", \"capabilities\": [{\"read\": true}, {\"upload_files\": true}, {\"edit_posts\": true}, {\"edit_published_posts\": true}, {\"publish_posts\": true}, {\"delete_posts\": true}, {\"delete_published_posts\": true}]}}, {\"subscriber\": {\"name\": \"Subscriber\", \"capabilities\": [{\"read\": true}]}}]','用户角权与权限');
+INSERT INTO `cf_options` VALUES ('locales','[{\"code\": \"zh-CN\", \"name\": \"Chinese (Simplified, China)\", \"default\": true, \"fallbackCode\": null}]',NULL),('roles','[{\"administrator\": {\"name\": \"Administrator\", \"capabilities\": [{\"switch_themes\": true}, {\"edit_themes\": true}, {\"activate_plugins\": true}, {\"edit_plugins\": true}, {\"edit_users\": true}, {\"edit_files\": true}, {\"manage_options\": true}, {\"moderate_comments\": true}, {\"manage_categories\": true}, {\"manage_links\": true}, {\"upload_files\": true}, {\"import\": true}, {\"edit_posts\": true}, {\"edit_others_posts\": true}, {\"edit_published_posts\": true}, {\"edit_pages\": true}, {\"edit_other_pages\": true}, {\"edit_published_pages\": true}, {\"publish_pages\": true}, {\"delete_pages\": true}, {\"delete_others_pages\": true}, {\"delete_published_pages\": true}, {\"delete_posts\": true}, {\"delete_others_posts\": true}, {\"delete_published_posts\": true}, {\"delete_private_posts\": true}, {\"edit_private_posts\": true}, {\"read_private_posts\": true}, {\"delete_private_pages\": true}, {\"edit_private_pages\": true}, {\"read_private_pages\": true}, {\"delete_users\": true}, {\"create_users\": true}, {\"unfiltered_upload\": true}, {\"edit_dashboard\": true}, {\"update_plugins\": true}, {\"delete_plugins\": true}, {\"install_plugins\": true}, {\"update_themes\": true}, {\"install_themes\": true}, {\"update_core\": true}, {\"list_users\": true}, {\"remove_users\": true}, {\"add_users\": true}, {\"promote_users\": true}, {\"edit_theme_options\": true}, {\"delete_themes\": true}, {\"export\": true}]}}, {\"contributor\": {\"name\": \"Contributor\", \"capabilities\": [{\"delete_pages\": true}, {\"delete_others_pages\": true}, {\"delete_published_pages\": true}, {\"delete_posts\": true}]}}, {\"editor\": {\"name\": \"Editor\", \"capabilities\": [{\"read\": true}, {\"moderate_comments\": true}, {\"manage_categories\": true}, {\"manage_links\": true}, {\"upload_files\": true}, {\"unfiltered_html\": true}, {\"edit_posts\": true}, {\"edit_others_posts\": true}, {\"edit_published_posts\": true}, {\"publish_posts\": true}, {\"edit_pages\": true}, {\"edit_others_pages\": true}, {\"edit_published_pages\": true}, {\"publish_pages\": true}, {\"delete_pages\": true}, {\"delete_others_pages\": true}, {\"delete_published_pages\": true}, {\"delete_posts\": true}, {\"delete_others_posts\": true}, {\"delete_published_posts\": true}, {\"delete_private_posts\": true}, {\"edit_private_posts\": true}, {\"read_private_posts\": true}, {\"delete_private_pages\": true}, {\"edit_private_pages\": true}, {\"read_private_pages\": true}]}}, {\"author\": {\"name\": \"Author\", \"capabilities\": [{\"read\": true}, {\"upload_files\": true}, {\"edit_posts\": true}, {\"edit_published_posts\": true}, {\"publish_posts\": true}, {\"delete_posts\": true}, {\"delete_published_posts\": true}]}}, {\"subscriber\": {\"name\": \"Subscriber\", \"capabilities\": [{\"read\": true}]}}]','用户角权与权限');
 /*!40000 ALTER TABLE `cf_options` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -266,6 +266,7 @@ CREATE TABLE `cf_orgs` (
 
 LOCK TABLES `cf_orgs` WRITE;
 /*!40000 ALTER TABLE `cf_orgs` DISABLE KEYS */;
+INSERT INTO `cf_orgs` VALUES ('RnEo232InsTEWDu6V3RZl','采撷科技','8NOH4Wl0lsKgNDcY8PEII','8NOH4Wl0lsKgNDcY8PEII','2018-08-18 11:57:08','2018-08-18 11:57:08');
 /*!40000 ALTER TABLE `cf_orgs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -313,7 +314,7 @@ CREATE TABLE `cf_usermeta` (
   PRIMARY KEY (`id`),
   KEY `usermeta_meta_key_index` (`metaKey`),
   KEY `usermeta_user_id_index` (`userId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -322,6 +323,7 @@ CREATE TABLE `cf_usermeta` (
 
 LOCK TABLES `cf_usermeta` WRITE;
 /*!40000 ALTER TABLE `cf_usermeta` DISABLE KEYS */;
+INSERT INTO `cf_usermeta` VALUES ('org_RnEo232InsTEWDu6V3RZl_capabilities','{\"role\": \"owner\", \"type\": \"org\"}','8NOH4Wl0lsKgNDcY8PEII',1);
 /*!40000 ALTER TABLE `cf_usermeta` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -358,6 +360,7 @@ CREATE TABLE `cf_users` (
 
 LOCK TABLES `cf_users` WRITE;
 /*!40000 ALTER TABLE `cf_users` DISABLE KEYS */;
+INSERT INTO `cf_users` VALUES ('8NOH4Wl0lsKgNDcY8PEII',NULL,'$2b$10$Cmh57ISyJMgwDknpAIA1z.d/HnFl5S0YwOLGaOXC9D4ECU1X9.0Sa','hello@caixie.top',NULL,1,1,NULL,0,NULL,'2018-08-18 11:57:08','2018-08-18 11:57:08');
 /*!40000 ALTER TABLE `cf_users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -370,4 +373,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-08-18 11:39:44
+-- Dump completed on 2018-08-20 10:00:49
