@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-expressions,no-confusing-arrow */
-import {mapSeries} from 'bluebird';
-import {isObject, isArray, toPairs} from 'lodash';
+const {mapSeries} = require('bluebird');
+const {isObject, isArray, toPairs} = require('lodash');
 
-import {readType, readEntry} from './db/read';
-import {inspectEntry, graphqlQuerySerialize} from './db/inspect';
+const {readType, readEntry} = require('./db/read');
+const {inspectEntry, graphqlQuerySerialize} = require('./db/inspect');
 
 const read = function (type, id = null) {
   return id === null ? readType(type) : [readEntry(type, id)];
