@@ -155,40 +155,41 @@ const buildMutation = async function (ObjectTypes) {
   const mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: () => {
-      Object.keys(InputType).forEach(key => {
-        const inputs = {}
-        inputs[key.toLowerCase()] = {type: InputType[key]}
-        MutationObjects[`edit${key}`] = {
-          type: ObjectTypes[key],
-          args: {...inputs},
-          resolve: async (root, params) => {
-            try {
-              if (key === 'Schema') {
-                return []
-                // return await writeModel(params)
-              }
-              return []
-              // return await writeEntry(key, params[key.toLowerCase()])
-            } catch (error) {
-              throw error
-            }
-          }
-        }
-
-        MutationObjects[`delete${key}`] = {
-          type: buildDeleteObject(key),
-          args: {...inputs},
-          resolve: async (root, params) => {
-            // try {
-            return []
-            // 业务服务管理接口
-            // return await deleteEntry(key, params[key.toLowerCase()])
-            // } catch (error) {
-            //   throw error
-            // }
-          }
-        }
-      })
+      // Object.keys(InputType).forEach(key => {
+      //   const inputs = {}
+      //   inputs[key.toLowerCase()] = {type: InputType[key]}
+      //   MutationObjects[`edit${key}`] = {
+      //     type: ObjectTypes[key],
+      //     args: {...inputs},
+      //     resolve: async (root, params) => {
+      //       try {
+      //         if (key === 'Schema') {
+      //           return []
+      //           // return await writeModel(params)
+      //         }
+      //         return []
+      //         // return await writeEntry(key, params[key.toLowerCase()])
+      //       } catch (error) {
+      //         throw error
+      //       }
+      //     }
+      //   }
+      //
+      //   MutationObjects[`delete${key}`] = {
+      //     type: buildDeleteObject(key),
+      //     args: {...inputs},
+      //     resolve: async (root, params) => {
+      //       // try {
+      //       return []
+      //       // 业务服务管理接口
+      //       // return await deleteEntry(key, params[key.toLowerCase()])
+      //       // } catch (error) {
+      //       //   throw error
+      //       // }
+      //     }
+      //   }
+      //
+      // })
       return MutationObjects
     }
   })

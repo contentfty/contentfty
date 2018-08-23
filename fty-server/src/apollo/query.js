@@ -29,18 +29,18 @@ const buildSchemaObject = function () {
 }
 
 const buildObjects = async function () {
-  // const model = await readModel()
-  const modelTypes = getTypeNames(model)
-  const model = []
+  const model = await readModel()
+  const modelTypes = getTypesNames(model)
+  console.log(modelTypes)
   const EntryInterface = new GraphQLInterfaceType({
     name: 'Entry',
     fields: {
       _id_: {type: GraphQLID},
       _newId_: {type: GraphQLID},
-      _type_: {type: GraphQLString},
-      _tree_: {type: GraphQLString}
+      _type_: {type: GraphQLString}
+      // _tree_: {type: GraphQLString}
     },
-    // resolveType: value => ObjectTypes
+    resolveType: value => ObjectTypes[value._type_]
   })
   const KeyValuePair = new GraphQLObjectType({
     name: 'KeyValuePair',
@@ -88,11 +88,11 @@ const buildObjects = async function () {
         structure.name,
         new GraphQLObjectType({
           name: structure.name,
-          interfaces: [EntryInterface],
+          // interfaces: [EntryInterface],
           fields: () => ({
-            _id_: {type: GraphQLID},
-            _new_id: {type: GraphQLID},
-            _type_: {type: GraphQLString},
+            // _id_: {type: GraphQLID},
+            // _new_id: {type: GraphQLID},
+            // _type_: {type: GraphQLString},
             // _tree_: {
             //   type: GraphQLString,
             //   resolve: root => inspect(root, modelTypes)

@@ -1,0 +1,392 @@
+[
+  {
+    "name": "User",
+    "fields": [
+      {
+        "name": "login",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "email",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "password",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "displayName",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "activated",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "confirmed",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "activationKey",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "deleted",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "phone",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "createdAt",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "updatedAt",
+        "type": [
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Org",
+    "fields": [
+      {
+        "name": "name",
+        "type": "text"
+      },
+      {
+        "name": "createdBy",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "updatedBy",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "createdAt",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "updatedAt",
+        "type": [
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Space",
+    "fields": [
+      {
+        "name": "spaceId",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "name",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "createdBy",
+        "type": [
+          "User"
+        ]
+      },
+      {
+        "name": "updatedBy",
+        "type": [
+          "User"
+        ]
+      },
+      {
+        "name": "createdAt",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "updatedAt",
+        "type": [
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Field",
+    "fields": [
+      {
+        "name": "name",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "instructions",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "type",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "unique",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "required",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "disabled",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "validations",
+        "type": [
+          "JSON"
+        ]
+      },
+      {
+        "name": "settings",
+        "type": [
+          "JSON"
+        ]
+      },
+      {
+        "name": "createdAt",
+        "type": [
+          "String"
+        ]
+      },
+      {
+        "name": "updatedAt",
+        "type": [
+          "String"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "EntryType",
+    "fields": [
+      {
+        "name": "name",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "fields",
+        "type": [
+          "Field"
+        ]
+      },
+      {
+        "name": "createdBy",
+        "type": [
+          "User"
+        ]
+      },
+      {
+        "name": "updatedBy",
+        "type": [
+          "User"
+        ]
+      },
+      {
+        "name": "createdAt",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "updatedAt",
+        "type": [
+          "text"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Entry",
+    "fields": [
+      {
+        "name": "env",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "typeId",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "createdBy",
+        "type": [
+          "User"
+        ]
+      },
+      {
+        "name": "updatedBy",
+        "type": [
+          "User"
+        ]
+      },{
+        "name": "publishedAt",
+        "type": [
+          "text"
+        ]
+      }, {
+        "name": "createdAt",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "updatedAt",
+        "type": [
+          "text"
+        ]
+      },{
+        "name": "displayField",
+        "type": [
+          "text"
+        ]
+      },{
+        "name": "name",
+        "type": [
+          "text"
+        ]
+      },{
+        "name": "fields",
+        "type": [
+          "Field"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Page",
+    "fields": [
+      {
+        "name": "slug",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "title",
+        "type": [
+          "richtext"
+        ]
+      },
+      {
+        "name": "component",
+        "type": [
+          "link",
+          "Component"
+        ]
+      },
+      {
+        "name": "children",
+        "type": [
+          "links",
+          "Page"
+        ]
+      },
+      {
+        "name": "position",
+        "type": [
+          "json"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Component",
+    "fields": [
+      {
+        "name": "type",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "children",
+        "type": [
+          "links",
+          "Component"
+        ]
+      },
+      {
+        "name": "props",
+        "type": [
+          "map",
+          "*"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Content",
+    "fields": [
+      {
+        "name": "title",
+        "type": [
+          "text"
+        ]
+      },
+      {
+        "name": "content",
+        "type": [
+          "richtext"
+        ]
+      }
+    ]
+  }
+]

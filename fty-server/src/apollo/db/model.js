@@ -1,8 +1,15 @@
+const path = require('path')
+const fs = require('fs-extra')
+
 const {updateSchema} = require('../index')
 
 const readModel = async function () {
+  // const modelPath = pat.resolve()
+  const sourcesPath = path.resolve('../fty-server/src/apollo/sources/sources.json')
+  const sourcesTypes = await fs.readJson(sourcesPath)
   let modelTypes = []
-  return modelTypes
+  return [...sourcesTypes, ...modelTypes]
+  // return modelTypes
 }
 
 const writeModel = async function (newModel) {

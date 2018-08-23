@@ -3,35 +3,6 @@ const {runHttpQuery} = require('apollo-server-core');
 const jsonwebtoken = require('jsonwebtoken');
 const { buildSchema } = require('../apollo/schema')
 
-module.exports = {
-  authFail () {
-    return this.fail('JWT 验证失败');
-  },
-
-  checkAuth (target, name, descriptor) {
-    const action = descriptor.value;
-    descriptor.value = function () {
-      console.log(this.ctx.state.user);
-      const userName = this.ctx.state.user && this.ctx.state.user.name;
-      if (!userName) {
-        return this.authFail();
-      }
-      this.updateAuth(userName);
-      return action.apply(this, arguments);
-    }
-    return descriptor;
-  },
-
-  updateAuth (userName) {
-    const userInfo = {
-      name: userName
-    };
-    const {secret, cookie, expire} = this.config('jwt');
-    const token = jsonwebtoken.sign(userInfo, secret, {expiresIn: expire});
-    this.cookie(cookie, token);
-    return token;
-  }
-}
 module.exports = (options = {}) => {
 
   return async ctx => {
@@ -41,14 +12,16 @@ module.exports = (options = {}) => {
     //   return this.fail('error')
     // }
 
-    const readModel = []
-    const getTypesNames = function (model) {
-      return model.map(type => type.name)
-    }
+    // const readModel = []
+    // const getTypesNames = function (model) {
+    //   return model.map(type => type.name)
+    // }
+    // console.log(options.schema)
     const schema = await buildSchema()
-    console.log('---------------------')
-    console.log(schema)
-    console.log('---------------------')
+    // console.log('---------------------')
+    // console.log('---------------------')
+    options.schema = schema
+    // console.log(options.schema)
     return runHttpQuery([], {
       method: ctx.request.method,
       options,

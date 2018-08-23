@@ -11,8 +11,8 @@ const buildSchema = async function () {
   const queryType = await buildQuery(objectTypes)
   const mutationType = await buildMutation(objectTypes)
   return new GraphQLSchema({
-    query: queryType,
-    mutation: mutationType
+    query: queryType
+    // mutation: mutationType
   })
 }
 
