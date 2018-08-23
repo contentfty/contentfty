@@ -33,7 +33,7 @@ module.exports = (options = {}) => {
       rsp => {
         ctx.set('Content-Type', 'application/json');
         ctx.body = rsp;
-        console.log(ctx.body)
+        // console.log(ctx.body)
       },
       err => {
         if (err.name !== 'HttpQueryError') {

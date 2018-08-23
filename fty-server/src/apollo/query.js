@@ -116,8 +116,8 @@ const buildQuery = function (ObjecTypes) {
           key,
           {
             type: new GraphQLList(value),
-            args: {id: {type: GraphQLID}},
-            resolve: (root, {id}) => read(key, id)
+            args: {id: {type: GraphQLID}, spaceId: {type: GraphQLID}},
+            resolve: (root, {id, spaceId}) => read(key, id, spaceId)
           }
         ])
       )

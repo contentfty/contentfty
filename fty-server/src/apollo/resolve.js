@@ -5,8 +5,9 @@ const {isObject, isArray, toPairs} = require('lodash');
 const {readType, readEntry} = require('./db/read');
 const {inspectEntry, graphqlQuerySerialize} = require('./db/inspect');
 
-const read = function (type, id = null) {
-  return id === null ? readType(type) : [readEntry(type, id)];
+const read = function (type, id = null, spaceId = null) {
+  // if ID Query single object els All
+  return id === null ? readType(type) : [readEntry({type, id, spaceId})];
 }
 
 const inspect = async function (root, modelTypes) {
@@ -21,7 +22,8 @@ const readChildren = function (links, modelTypes) {
   return Promise.all(
     links.links.filter(link => modelTypes.includes(link.type)).map(link => {
       const {type, id} = link;
-      return readEntry(type, id);
+      const spaceId = null
+      return readEntry({type, id, spaceId});
     })
   );
 }
