@@ -1,5 +1,10 @@
 /* eslint-disable no-fallthrough */
-const readeType = async function () {
+
+/**
+ * 按类型查询出内容列表
+ * @returns {Promise<Array>}
+ */
+const readType = async function () {
   return []
 }
 
@@ -47,6 +52,6 @@ const readEntry = async function ({type, id, spaceId}) {
 }
 
 module.exports = {
-  readeType,
+  readType,
   readEntry
 }
