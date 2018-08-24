@@ -55,12 +55,10 @@ module.exports = [
       if (ctx.url.match(ctx.url.match(/^\/api\/v1\/account\/signup?/) ||
         ctx.url.match(/^\/api\/v1\/account\/signin?/) ||
         ctx.url.match(/^\/api\/v1\/auth\/token|verify?/))) {
-        console.log('signup .....sss...')
         return false;
       } else if (ctx.url.match(ctx.url.match(/^\/graphql*?/) || ctx.url.match(/^\/api*?/))) {
         return true
       }
-      console.log('signup ........')
     }
   },
   {
