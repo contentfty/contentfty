@@ -10,6 +10,10 @@ const {
 
 const GraphQLJSON = require('graphql-type-json')
 
+const {writeEntry} = require('./db/write')
+const {deleteEntry} = require('./db/delete')
+const {readModel, writeModel} = require('./db/model')
+
 const LinkDataInputType = new GraphQLInputObjectType({
   name: 'LinkDataInput',
   fields: () => ({
@@ -34,7 +38,7 @@ const LinkInputType = new GraphQLInputObjectType({
   })
 })
 
-const LinksInputType = new GraphQLObjectType({
+const LinksInputType = new GraphQLInputObjectType({
   name: 'LinkInput',
   fields: () => ({
     _role_: {
@@ -46,7 +50,7 @@ const LinksInputType = new GraphQLObjectType({
   })
 })
 
-const MapInputType = new GraphQLObjectType({
+const MapInputType = new GraphQLInputObjectType({
   name: 'MapInput',
   fields: () => ({
     _role_: {
@@ -58,7 +62,7 @@ const MapInputType = new GraphQLObjectType({
   })
 })
 
-const FieldType = new GraphQLObjectType({
+const FieldType = new GraphQLInputObjectType({
   name: 'FieldType',
   fields: () => ({
     name: {
@@ -70,7 +74,7 @@ const FieldType = new GraphQLObjectType({
   })
 })
 
-const SchemaType = new GraphQLObjectType({
+const SchemaType = new GraphQLInputObjectType({
   name: 'SchemaType',
   fields: () => ({
     name: {
@@ -83,7 +87,7 @@ const SchemaType = new GraphQLObjectType({
 })
 
 const buildSchemaInput = function () {
-  return new GraphQLObjectType({
+  return new GraphQLInputObjectType({
     name: 'SchemaInput',
     fields: () => ({
       types: {
@@ -113,10 +117,9 @@ const buildInput = field => {
 
 const buildInputs = async function () {
   const InputType = {}
-  // const model = await readModel()
-  const model = []
+  const model = await readModel()
   for (const structure of model) {
-    InputType[structure.name] = new GraphQLObjectType({
+    InputType[structure.name] = new GraphQLInputObjectType({
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
@@ -155,41 +158,41 @@ const buildMutation = async function (ObjectTypes) {
   const mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: () => {
-      // Object.keys(InputType).forEach(key => {
-      //   const inputs = {}
-      //   inputs[key.toLowerCase()] = {type: InputType[key]}
-      //   MutationObjects[`edit${key}`] = {
-      //     type: ObjectTypes[key],
-      //     args: {...inputs},
-      //     resolve: async (root, params) => {
-      //       try {
-      //         if (key === 'Schema') {
-      //           return []
-      //           // return await writeModel(params)
-      //         }
-      //         return []
-      //         // return await writeEntry(key, params[key.toLowerCase()])
-      //       } catch (error) {
-      //         throw error
-      //       }
-      //     }
-      //   }
-      //
-      //   MutationObjects[`delete${key}`] = {
-      //     type: buildDeleteObject(key),
-      //     args: {...inputs},
-      //     resolve: async (root, params) => {
-      //       // try {
-      //       return []
-      //       // 业务服务管理接口
-      //       // return await deleteEntry(key, params[key.toLowerCase()])
-      //       // } catch (error) {
-      //       //   throw error
-      //       // }
-      //     }
-      //   }
-      //
-      // })
+      Object.keys(InputType).forEach(key => {
+        const inputs = {}
+        inputs[key.toLowerCase()] = {type: InputType[key]}
+        MutationObjects[`edit${key}`] = {
+          type: ObjectTypes[key],
+          args: {...inputs},
+          resolve: async (root, params) => {
+            try {
+              if (key === 'Schema') {
+                return []
+                // return await writeModel(params)
+              }
+              // return []
+              return await writeEntry(key, params[key.toLowerCase()])
+            } catch (error) {
+              throw error
+            }
+          }
+        }
+
+        MutationObjects[`delete${key}`] = {
+          type: buildDeleteObject(key),
+          args: {...inputs},
+          resolve: async (root, params) => {
+            // try {
+            return []
+            // 业务服务管理接口
+            // return await deleteEntry(key, params[key.toLowerCase()])
+            // } catch (error) {
+            //   throw error
+            // }
+          }
+        }
+
+      })
       return MutationObjects
     }
   })
