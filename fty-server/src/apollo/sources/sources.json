@@ -109,7 +109,7 @@
     "name": "Space",
     "fields": [
       {
-        "name": "spaceId",
+        "name": "orgId",
         "type": [
           "text"
         ]

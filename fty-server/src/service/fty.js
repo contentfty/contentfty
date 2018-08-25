@@ -116,5 +116,116 @@ module.exports = class extends think.Service {
   async createContentType () {
     // const newType = await entryTypeModel.save(entryType, context.user.id)
   }
+
+  /**
+   * 创建新组织
+   * @param orgName
+   * @param user
+   * @returns {Promise<{id: *}>}
+   */
+  async createOrg (orgName, user) {
+    const orgModel = think.model('orgs');
+    const orgId = await this.regElement(ElementType.org)
+    // 新增类型注册成功后添加内容
+    if (orgId !== false) {
+      await orgModel.add({
+        id: orgId,
+        name: orgName,
+        createdBy: user.id,
+        updatedBy: user.id,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      })
+      // 4 关联组织用户
+      const role = 'owner'
+      const usermeta = think.model('usermeta')
+      await usermeta.add({
+        userId: user.id,
+        metaKey: `org_${orgId}_capabilities`,
+        metaValue: JSON.stringify({'role': role, 'type': 'org'})
+      })
+      return {id: orgId}
+    }
+  }
+
+  /**
+   * 创建内容空间
+   * @param spaceInput
+   * @param user
+   * @returns {Promise<*>}
+   */
+  async createSpace (spaceInput, user) {
+    // createSpace: async (prev, args, context) => {
+    const spaceModel = think.model('spaces');
+    const userId = user.id
+    // 验证组织 ID
+    const orgModel = think.model('orgs')
+    const originOrg = await orgModel.where({id: spaceInput.orgId}).field(['id']).find()
+    if (think.isEmpty(originOrg) || spaceInput.orgId !== originOrg.id) {
+      throw new Error('OrgId is not exists!')
+    }
+    const spaceId = await this.regElement(ElementType.space)
+    await spaceModel.add({
+      id: spaceId,
+      name: spaceInput.name,
+      orgId: spaceInput.orgId,
+      status: 'pending',
+      createdBy: user.id,
+      updatedBy: user.id,
+      createdAt: dateNow(),
+      updatedAt: dateNow()
+    })
+    const db = think.service('fty', {spaceId: spaceId})
+    const res = await db.create()
+    if (think.isEmpty(res)) {
+      // 记录用户 owner
+      const spaceElementsModel = think.model('elements', {spaceId: spaceId})
+      await spaceElementsModel.addMany([{
+        id: userId,
+        type: ElementType.user,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }, {
+        id: 'master',
+        type: ElementType.env,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }])
+      // 创建环境
+      const envModel = think.model('envs', {spaceId: spaceId})
+      await envModel.add({
+        id: 'master',
+        spaceId: spaceId,
+        // FAILURE
+        // PENDING
+        // READY
+        status: 'ready',
+        description: 'Master environment.'
+      })
+
+      // 更新空间状态
+      await spaceModel.where({
+        id: spaceId
+      }).update({
+        status: 'ready',
+        updateAt: dateNow()
+      })
+    } else {
+      return this.fail(res)
+    }
+
+    // 关联 space 用户
+    const role = 'manager'
+    const usermeta = think.model('usermeta')
+    await usermeta.add({
+      userId: userId,
+      metaKey: `space_${spaceId}_capabilities`,
+      metaValue: JSON.stringify({'role': role, 'type': 'space'})
+    })
+
+    const persistSpace = await spaceModel.where({id: spaceId}).find()
+    return persistSpace
+    // }
+  }
 }
 
