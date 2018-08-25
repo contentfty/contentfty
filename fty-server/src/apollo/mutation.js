@@ -164,14 +164,15 @@ const buildMutation = async function (ObjectTypes) {
         MutationObjects[`edit${key}`] = {
           type: ObjectTypes[key],
           args: {...inputs},
-          resolve: async (root, params) => {
+          resolve: async (root, params, context) => {
             try {
               if (key === 'Schema') {
                 return []
                 // return await writeModel(params)
               }
+              const user = context.user
               // return []
-              return await writeEntry(key, params[key.toLowerCase()])
+              return await writeEntry(key, params[key.toLowerCase()], user)
             } catch (error) {
               throw error
             }
@@ -181,7 +182,7 @@ const buildMutation = async function (ObjectTypes) {
         MutationObjects[`delete${key}`] = {
           type: buildDeleteObject(key),
           args: {...inputs},
-          resolve: async (root, params) => {
+          resolve: async (root, params, context) => {
             // try {
             return []
             // 业务服务管理接口

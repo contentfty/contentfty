@@ -6,6 +6,8 @@ const { buildSchema } = require('../apollo/schema')
 module.exports = (options = {}) => {
 
   return async ctx => {
+    const schema = await buildSchema()
+    options.schema = schema
     options.context = think.extend(options.context, {user: ctx.state.user})
     // const userName = options.context.state.user && options.context.state.user.name
     // if (!userName) {
@@ -17,10 +19,7 @@ module.exports = (options = {}) => {
     //   return model.map(type => type.name)
     // }
     // console.log(options.schema)
-    const schema = await buildSchema()
-    // console.log('---------------------')
-    // console.log('---------------------')
-    options.schema = schema
+
     // console.log(options.schema)
     return runHttpQuery([], {
       method: ctx.request.method,

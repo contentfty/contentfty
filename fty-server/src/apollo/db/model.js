@@ -3,15 +3,33 @@ const fs = require('fs-extra')
 
 const {updateSchema} = require('../index')
 
+/**
+ * 根据 SpaceId 读取全部内容模型
+ * @returns {Promise<*[]>}
+ */
 const readModel = async function () {
+  // 数据模型就是表结构
+
   // const modelPath = pat.resolve()
   const sourcesPath = path.resolve('../fty-server/src/apollo/sources/sources.json')
   const sourcesTypes = await fs.readJson(sourcesPath)
   let modelTypes = []
+  // 查询 entryTypes model
+  const entryTypesModel = think.model('entrytypes')
+  // const entryTypes = await entryTypesModel.getById('posts')
+  // const entryTypes = await entryTypesModel.select()
+  // console.log(sourcesTypes)
+  // modelTypes[0] = entryTypes
+  // console.log(entryTypes)
   return [...sourcesTypes, ...modelTypes]
   // return modelTypes
 }
 
+/**
+ * 写入新内容模型
+ * @param newModel
+ * @returns {Promise<Array>}
+ */
 const writeModel = async function (newModel) {
   let result = []
   await updateSchema()
