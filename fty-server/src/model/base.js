@@ -3,7 +3,7 @@ module.exports = class extends think.Model {
     super(...args);
     this.spaceId = this.config.spaceId !== undefined || !think.isEmpty(this.config.spaceId) ? this.config.spaceId + '_' : '';
     // this.prefix = '';
-    if (this.spaceId !== undefined || !think.isEmpty(this.spaceId)) {
+    if (this.spaceId !== undefined || !think.isEmpty(this.spaceId) || this.spaceId !== null) {
       this.prefix = this.spaceId;
       // this.spaceId = this.spaceId + '_';
     }

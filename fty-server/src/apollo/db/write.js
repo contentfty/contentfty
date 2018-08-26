@@ -4,32 +4,29 @@ const {readEntry} = require('./read')
 const fty = think.service('fty')
 
 const emptyField = function (field) {
-  const role = field._role_
-  return _.isEmpty(field) || _.isUndefined(role) !== _.isEmpty(field[role])
+  // const role = field._role_
+  // return _.isEmpty(field) || _.isUndefined(role) !== _.isEmpty(field[role])
+  return null
 }
-const writeEntry = async function (type, data, user) {
-  const userModel = think.model('users')
-  // console.log(user)
-  // console.log('user --d-d-d-d-')
+const writeEntry = async function (type, data, context) {
   switch (type) {
     case 'User': {
-      const fieldModel = think.model('users')
-      // await fieldModel.save(data)
-      // const userData = await fieldModel.getById(id)
-      // return userData
-    }
-    case 'Entry': {
-      // const fieldModel = think.model('entries', {spaceId: spaceId});
-      // 返回条目类型mwwp
+      return await fty.createUser(data)
     }
     case 'Org': {
-      return await fty.createOrg(data.name, user)
+      return await fty.createOrg(data.name, context.user)
     }
     case 'Space': {
-      return await fty.createSpace(data, user)
+      return await fty.createSpace(data, context.user)
+    }
+    case 'EntryType': {
+      return await fty.createContentType(data, context.user, context.spaceId)
+    }
+    case 'Entry': {
+      return await fty.createEntry(data, context.user, context.spaceId)
     }
     case 'Field': {
-      return null
+      return await fty.createField(data, context.spaceId)
     }
     default: {
       return null

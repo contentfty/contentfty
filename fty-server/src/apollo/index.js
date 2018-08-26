@@ -1,26 +1,19 @@
 /* eslint-disable prefer-reflect,prefer-rest-params */
 const {runHttpQuery} = require('apollo-server-core');
-const jsonwebtoken = require('jsonwebtoken');
-const { buildSchema } = require('../apollo/schema')
+const {buildSchema} = require('../apollo/schema')
 
 module.exports = (options = {}) => {
 
   return async ctx => {
     const schema = await buildSchema()
     options.schema = schema
-    options.context = think.extend(options.context, {user: ctx.state.user})
-    // const userName = options.context.state.user && options.context.state.user.name
-    // if (!userName) {
-    //   return this.fail('error')
-    // }
+    const spaceId = ctx.request.header['x-space-id']
+    // 上下文配置
+    options.context = think.extend(options.context, {
+      user: ctx.state.user,
+      spaceId: spaceId ? spaceId : ''
+    })
 
-    // const readModel = []
-    // const getTypesNames = function (model) {
-    //   return model.map(type => type.name)
-    // }
-    // console.log(options.schema)
-
-    // console.log(options.schema)
     return runHttpQuery([], {
       method: ctx.request.method,
       options,

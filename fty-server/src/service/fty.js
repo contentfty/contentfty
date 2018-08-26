@@ -113,8 +113,14 @@ module.exports = class extends think.Service {
     }
   }
 
-  async createContentType () {
-    // const newType = await entryTypeModel.save(entryType, context.user.id)
+  /**
+   * 创建内容类型
+   * @returns {Promise<*>}
+   */
+  async createContentType (entrytypeInput, user, spaceId) {
+      const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
+      const newType = await entryTypeModel.save(entrytypeInput, user.id)
+      return newType
   }
 
   /**
@@ -225,6 +231,192 @@ module.exports = class extends think.Service {
 
     const persistSpace = await spaceModel.where({id: spaceId}).find()
     return persistSpace
+    // }
+  }
+
+  /**
+   * 创建新用户
+   * 一般情况都由 Controller 中的 signup 注册用户
+   * 此处为系统平台的创建功能
+   * @param userInput
+   * @returns {Promise<*>}
+   */
+  async createUser (userInput) {
+    // 1 查询组织
+    const user = userInput
+    // 注册进 elements
+    // 1 添加 user 类型
+    // 2 添加 space 类型
+    // 3 添加组织类型
+    const userId = Generate.id()
+    const spaceId = Generate.spaceId()
+    const orgId = Generate.id()
+
+    const elementsModel = think.model('elements')
+    const userModel = think.model('users')
+    const spaceModel = think.model('spaces')
+    const orgModel = think.model('orgs')
+
+    const insertIds = await elementsModel.addMany([
+      {id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow()},
+      {id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow()},
+      {id: spaceId, type: think.elementType.space, createdAt: dateNow(), updatedAt: dateNow()},
+    ])
+
+    if (insertIds.length === 3) {
+      await userModel.add({
+        id: userId,
+        login: user.email,
+        email: user.email,
+        password: user.password,
+        displayName: user.displayName,
+        phone: user.phone
+      })
+
+      await orgModel.add({
+        id: orgId,
+        name: slugName(user.org),
+        createdBy: userId,
+        updatedBy: userId,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      })
+
+      await spaceModel.add({
+        id: spaceId,
+        orgId: orgId,
+        createdBy: userId,
+        updatedBy: userId,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      })
+    }
+
+    const db = think.service('fty', {spaceId: spaceId})
+    const res = await db.create()
+    // 如果空间应用的相关表创建成功，就开始初始化数据
+    if (think.isEmpty(res)) {
+      // 记录用户 owner
+      const spaceElementsModel = think.model('elements', {spaceId: spaceId})
+      await spaceElementsModel.addMany([{
+        id: userId,
+        type: ElementType.user,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }, {
+        id: 'master',
+        type: ElementType.env,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }])
+      // 创建环境
+      const envModel = think.model('envs', {spaceId: spaceId})
+      await envModel.add({
+        id: 'master',
+        spaceId: spaceId,
+        // FAILURE
+        // PENDING
+        // READY
+        status: 'ready',
+        description: 'Master environment.'
+      })
+    } else {
+      return this.fail(res)
+    }
+    // const result = await this.transaction(async () => {
+    //   const insertId = await this.add(data);
+    //   return insertId;
+    // })
+    // return {token: think.generate.spaceId + '---' + think.generate.id}
+    return {token: userId + '-' + spaceId + '-' + orgId}
+  }
+
+  /**
+   * 创建内容类型的内容字段
+   *
+   * @param fieldInput
+   * @param spaceId
+   * @returns {Promise<any>}
+   */
+  async createField (fieldInput, spaceId) {
+    const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
+    const field = fieldInput.field
+    const typeId = field.typeId
+    const exists = await entrytypeModel.where({id: typeId}).find()
+    if (!exists) {
+      throw new Error('Content Type is not exists!')
+    }
+    // 1 检查 content Type
+    // 从缓存中取到所有内容类型验证
+    const fieldModel = think.model('fields', {spaceId: spaceId})
+    await fieldModel.add({
+      id: field.id,
+      typeId: field.typeId,
+      name: field.name,
+      type: field.type,
+      instructions: field.instructions,
+      unique: field.unique,
+      required: field.required,
+      disabled: field.disabled,
+      validations: field.validations,
+      settings: field.settings,
+      createdAt: dateNow(),
+      updatedAt: dateNow()
+    })
+    // 更新内容类型表
+    await entrytypeModel.where({
+      id: typeId
+    }).update({
+      'fields': ['exp', `JSON_ARRAY_APPEND(fields, '$', '${field.id}')`]
+    })
+    return await fieldModel.where({id: field.id, typeId: field.typeId}).find()
+  }
+
+  async createEntry (entryInput, user, spaceId) {
+    // createEntry: async (prev, args, context) => {
+    // let entry = args.entry
+    if (Object.is(entryInput.id, undefined)) {
+      entryInput.id = await think.service('fty').regElement(ElementType.entry)
+    }
+    const userId = user.id
+    // const typeId = args.typeId
+    const typeId = entryInput.typeId
+    // fakeDATA
+    const fakeFieldsData = {
+      "title": {
+        "zh-CN": "这是一个标题"
+      },
+      "slug": {
+        "zh-CN": "hello"
+      },
+      "shortDescription": {
+        "zh-CN": "这是一些简短的介绍"
+      },
+      "description": {
+        "zh-CN": "这是内容介绍"
+      },
+      "categories": {
+        "zh-CN": [{
+          "type": "Link",
+          "linkType": "Entry",
+          "id": ""
+        }]
+      }
+    }
+    // 1 查询出规则
+    const contentType = await think.model('entrytypes', {spaceId: spaceId}).getById(typeId)
+    // 2 验证内容是否符合规则
+    // console.log(contentType)
+
+    // 3 符合规则后存储内容
+    const entryModel = think.model('entries', {spaceId: spaceId})
+    // 4 根据状态保存内容，默认发布至 versions
+    await entryModel.save({
+      entryId: entry.id,
+      createdBy: userId,
+      typeId: typeId,
+      data: fakeFieldsData
+    })
     // }
   }
 }

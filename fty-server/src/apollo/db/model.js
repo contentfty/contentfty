@@ -15,7 +15,7 @@ const readModel = async function () {
   const sourcesTypes = await fs.readJson(sourcesPath)
   let modelTypes = []
   // 查询 entryTypes model
-  const entryTypesModel = think.model('entrytypes')
+  // const entryTypesModel = think.model('entrytypes')
   // const entryTypes = await entryTypesModel.getById('posts')
   // const entryTypes = await entryTypesModel.select()
   // console.log(sourcesTypes)

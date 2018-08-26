@@ -123,8 +123,7 @@ const buildInputs = async function () {
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
-          _id_: {type: GraphQLID},
-          _newId_: {type: GraphQLID}
+          id: {type: GraphQLID}
         }
 
         if (structure.type) {
@@ -170,9 +169,9 @@ const buildMutation = async function (ObjectTypes) {
                 return []
                 // return await writeModel(params)
               }
-              const user = context.user
+              // const user = context
               // return []
-              return await writeEntry(key, params[key.toLowerCase()], user)
+              return await writeEntry(key, params[key.toLowerCase()], context)
             } catch (error) {
               throw error
             }
