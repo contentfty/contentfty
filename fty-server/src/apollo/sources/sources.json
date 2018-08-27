@@ -369,7 +369,8 @@
         "validations": [],
         "disabled": false,
         "items": {
-          "type": "Field",
+          "type": "Link",
+          "linkType": "Field",
           "validations": []
         }
       },
@@ -522,7 +523,8 @@
         "validations": [],
         "disabled": false,
         "items": {
-          "type": "Field",
+          "type": "Link",
+          "linkType": "Field",
           "validations": []
         }
       }

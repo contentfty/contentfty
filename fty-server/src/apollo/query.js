@@ -14,15 +14,15 @@ const GraphQLJSON = require('graphql-type-json')
 const {readModel, getTypesNames} = require('./db/model')
 const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
 
-const RichTextType = new GraphQLScalarType({
-  name: 'RichText',
-  serialize: value => value
-})
-
-const ImageType = new GraphQLScalarType({
-  name: 'Image',
-  serialize: value => value
-})
+// const RichTextType = new GraphQLScalarType({
+//   name: 'RichText',
+//   serialize: value => value
+// })
+//
+// const ImageType = new GraphQLScalarType({
+//   name: 'Image',
+//   serialize: value => value
+// })
 
 const buildSchemaObject = function () {
   return new GraphQLObjectType({
@@ -34,14 +34,15 @@ const buildSchemaObject = function () {
 const buildObjects = async function () {
   const model = await readModel()
   const modelTypes = getTypesNames(model)
+
   const EntryInterface = new GraphQLInterfaceType({
     name: 'EntryInterface',
     fields: {
       id: {type: GraphQLID},
       // _id_: {type: GraphQLID},
       // _newId_: {type: GraphQLID},
-      _type_: {type: GraphQLString}
-      // _tree_: {type: GraphQLString}
+      _type_: {type: GraphQLString},
+      _tree_: {type: GraphQLString}
     },
     resolveType: value => ObjectTypes[value._type_]
   })
@@ -57,16 +58,35 @@ const buildObjects = async function () {
   const buildField = field => {
     const fieldType = field.type;
     // console.log(fieldType)
+    let type
     switch (fieldType) {
       case 'Symbol':
         return {type: GraphQLString}
       case 'Date':
         return {type: GraphQLString}
       case 'Boolean':
-        return { type: GraphQLBoolean}
-      // case 'link':
-      //   type = field.type[1] === '*' ? EntryInterface : ObjectTypes[field.type[1]];
-      //   return {type, resolve: root => readChild(root[field.name])};
+        return {type: GraphQLBoolean}
+      case 'Link': {
+        type = ObjectTypes[field.linkType]
+        // case 'link':
+        //   type = field.type[1] === '*' ? EntryInterface : ObjectTypes[field.type[1]];
+        // return {type: GraphQLString};
+        return {
+          type,
+          resolve: (root) => readChild(type, root[field.name])
+        }
+      }
+      case 'Array': {
+        if (field.items.type === 'Link') {
+          // [Field]
+          type = new GraphQLList(ObjectTypes[field.items.linkType])
+        }
+        return {
+          type,
+          resolve: root => readChildren(field.items.linkType, root.id)
+        }
+        // return {type: GraphQLString}
+      }
       // case 'links':
       //   type =
       //     field.type[1] === '*'
@@ -100,13 +120,11 @@ const buildObjects = async function () {
           interfaces: [EntryInterface],
           fields: () => ({
             id: {type: GraphQLID},
-            // _id_: {type: GraphQLID},
-            // _new_id: {type: GraphQLID},
             _type_: {type: GraphQLString},
-            // _tree_: {
-            //   type: GraphQLString,
-            //   resolve: root => inspect(root, modelTypes)
-            // },
+            _tree_: {
+              type: GraphQLString,
+              resolve: root => inspect(root, modelTypes)
+            },
             ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
           })
         })

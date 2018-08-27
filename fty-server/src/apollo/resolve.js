@@ -15,25 +15,46 @@ const inspect = async function (root, modelTypes) {
   return graphqlQuerySerialize(inspection);
 }
 
-const readChildren = function (links, modelTypes) {
-  if (!isObject(links)) {
-    return null;
-  }
-  return Promise.all(
-    links.links.filter(link => modelTypes.includes(link.type)).map(link => {
-      const {type, id} = link;
-      const spaceId = null
-      return readEntry({type, id, spaceId});
-    })
-  );
+/**
+ * 获取子列表
+ *
+ * @param links
+ * @param modelTypes
+ * @returns {*}
+ */
+const readChildren = async function (links, modelTypes) {
+  // console.log(links)
+  // console.log(modelTypes)
+  // return Promise.all(
+  const fields = await think.model('fields').where({typeId: modelTypes}).select()
+  // console.log(fields)
+  return fields
+  // )
+  // if (!isObject(links)) {
+  //   return null;
+  // }
+  // return Promise.all(
+  //   links.links.filter(link => modelTypes.includes(link.type)).map(link => {
+  //     const {type, id} = link;
+  //     const spaceId = null
+  //     return readEntry({type, id, spaceId});
+  //   })
+  // );
 }
 
-const readChild = function (link) {
-  if (!isObject(link)) {
-    return null;
-  }
-  const {type, id} = link.link;
-  return readEntry(type, id);
+/**
+ * 读取子元素
+ * @param link
+ * @returns {*}
+ */
+const readChild = function (type, id) {
+  // if (!isObject(link)) {
+  //   return null;
+  // }
+  // const {type, id} = link.link;
+  // return readEntry(type, id, null);
+  const spaceId = null
+  return readEntry({type, id, spaceId});
 }
 
 const readMap = function (map, modelTypes) {

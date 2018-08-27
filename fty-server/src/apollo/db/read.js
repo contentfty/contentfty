@@ -4,8 +4,38 @@
  * 按类型查询出内容列表
  * @returns {Promise<Array>}
  */
-const readType = async function () {
-  return []
+const readType = async function (type) {
+  // return []
+  switch (type) {
+    case 'User': {
+      const fieldModel = think.model('users');
+      const userData = await fieldModel.getById(id)
+      return userData
+    }
+    case 'Entry': {
+      return await think.model('entries').select()
+      // const fieldModel = think.model('entries', {spaceId: spaceId});
+      // 返回条目类型mwwp
+    }
+    case 'EntryType': {
+      return await think.model('entrytypes').select()
+      // const fieldModel = think.model('entries', {spaceId: spaceId});
+      // 返回条目类型mwwp
+    }
+    case 'Org': {
+      // return null
+      return await think.model('orgs').select()
+    }
+    case 'Space': {
+      return await think.model('spaces').select()
+    }
+    case 'Field': {
+      return null
+    }
+    default: {
+      return null
+    }
+  }
 }
 
 /**
@@ -20,8 +50,7 @@ const readEntry = async function ({type, id, spaceId}) {
   if (id === 'undefined') {
     return null
   }
-
-  switch (type) {
+  switch (type.toString()) {
     case 'User': {
       const fieldModel = think.model('users');
       const userData = await fieldModel.getById(id)
