@@ -4,8 +4,36 @@
  * 按类型查询出内容列表
  * @returns {Promise<Array>}
  */
-const readType = async function () {
-  return []
+const readType = async function ({ type, spaceId }) {
+  switch (type) {
+    case 'User': {
+      const fieldModel = think.model('users');
+      const usersData = await fieldModel.select()
+      return usersData
+    }
+    case 'Entry': {
+      const fieldModel = think.model('entries', { spaceId: spaceId });
+      const entryData = await fieldModel.find({ id: id })
+      return entryData
+      // 返回条目类型mwwp
+    }
+    case 'Org': {
+      const fieldModel = think.model('orgs');
+      const orgsData = await fieldModel.select()
+      return orgsData
+    }
+    case 'Space': {
+      const fieldModel = think.model('spaces');
+      const spacesData = await fieldModel.select()
+      return spacesData
+    }
+    case 'Field': {
+      return null
+    }
+    default: {
+      return []
+    }
+  }
 }
 
 /**
@@ -16,7 +44,7 @@ const readType = async function () {
  * @param spaceId 空间ID
  * @returns {Promise<*>}
  */
-const readEntry = async function ({type, id, spaceId}) {
+const readEntry = async function ({ type, id, spaceId }) {
   if (id === 'undefined') {
     return null
   }
@@ -28,13 +56,21 @@ const readEntry = async function ({type, id, spaceId}) {
       return userData
     }
     case 'Entry': {
-      const fieldModel = think.model('entries', {spaceId: spaceId});
-      const entryData = await fieldModel.find({id:id})
+      const fieldModel = think.model('entries', { spaceId: spaceId });
+      const entryData = await fieldModel.find({ id: id })
+
+      // const fieldEntryVersionsModel = think.model('entryversions', { spaceId: spaceId });
+      // const entryVersionsData = await fieldEntryVersionsModel.where({entryId:entryData.id}).select()
+      // let data = entryData
+      // data.fields = entryVersionsData
+      // console.log(data)
       return entryData
       // 返回条目类型mwwp
     }
     case 'Org': {
-      return null
+      const fieldModel = think.model('orgs');
+      const orgData = await fieldModel.find({ id: id })
+      return orgData
     }
     case 'Space': {
       return null

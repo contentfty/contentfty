@@ -124,6 +124,26 @@ module.exports = class extends think.Service {
   }
 
   /**
+   * 更新内容类型
+   */
+  async updateContentType(entrytypeInput,spaceId) {
+    if (think.isEmpty(entrytypeInput.id)) {
+      throw new Error('EntryType id is not exists!')
+    }
+    const entryTypeModel = think.model('entrytypes',{spaceId: spaceId})
+    const exists = await entryTypeModel.where({ id: entrytypeInput.id }).find()
+    if (think.isEmpty(exists)) {
+      throw new Error('EntryType is not exists!')
+    }
+    entrytypeInput.updatedAt = dateNow()
+    const affectedRows = await entryTypeModel.where({ id: entrytypeInput.id }).update(entrytypeInput)
+    if (affectedRows > 0) {
+      return { id: exists.id };
+    }
+    throw new Error('EntryType update fail!')
+  }
+
+  /**
    * 创建新组织
    * @param orgName
    * @param user
@@ -332,6 +352,27 @@ module.exports = class extends think.Service {
     // })
     // return {token: think.generate.spaceId + '---' + think.generate.id}
     return { token: userId + '-' + spaceId + '-' + orgId }
+  }
+
+  /**
+   * 更新用户信息
+   * @param userInput 
+   */
+  async updateUser(userInput) {
+    if (think.isEmpty(userInput.id)) {
+      throw new Error('User id is not exists!')
+    }
+    const userModel = think.model('users')
+    const exists = await userModel.where({ id: userInput.id }).find()
+    if (think.isEmpty(exists)) {
+      throw new Error('User is not exists!')
+    }
+    userInput.updatedAt = dateNow()
+    const affectedRows = await userModel.where({ id: userInput.id }).update(userInput)
+    if (affectedRows > 0) {
+      return { id: exists.id };
+    }
+    throw new Error('User update fail!')
   }
 
   /**
