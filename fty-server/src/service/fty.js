@@ -15,7 +15,7 @@ module.exports = class extends think.Service {
    *  @param {String} type   [执行类型，export - 备份数据， import - 还原数据]
    * @return {[]}         []
    */
-  constructor (config) {
+  constructor(config) {
     super()
     this.config = config
   }
@@ -27,12 +27,12 @@ module.exports = class extends think.Service {
   //   this.type = type;
   //   this.ctx = ctx;
   // }
-  async create () {
+  async create() {
     const db = think.model('mysql', think.config('model'));
     const dbConfig = think.config('model.mysql');
     const dbFile = think.ROOT_PATH + '/scripts/schema.sql';
     if (!think.isFile(dbFile)) {
-// eslint-disable-next-line prefer-promise-reject-errors
+      // eslint-disable-next-line prefer-promise-reject-errors
       return Promise.reject('数据库文件（schema.sql）不存在，请重新下载');
     }
 
@@ -68,13 +68,13 @@ module.exports = class extends think.Service {
 
     } catch (e) {
       think.logger.error(e)
-// eslint-disable-next-line prefer-promise-reject-errors
+      // eslint-disable-next-line prefer-promise-reject-errors
       return Promise.reject('数据表导入失败。');
     }
 
   }
 
-  async init () {
+  async init() {
     // 创建内容类型
     // const entryType = think.model('entrytypes')
     // await entryType.addMany([{
@@ -97,8 +97,8 @@ module.exports = class extends think.Service {
    * @param type
    * @returns {Promise<*>}
    */
-  async regElement (type) {
-    const elementModel = think.model('elements', {spaceId: this.spaceId})
+  async regElement(type) {
+    const elementModel = think.model('elements', { spaceId: this.spaceId })
     const typeId = type === ElementType.space ? Generate.spaceId() : Generate.id()
     try {
       await elementModel.add({
@@ -117,10 +117,10 @@ module.exports = class extends think.Service {
    * 创建内容类型
    * @returns {Promise<*>}
    */
-  async createContentType (entrytypeInput, user, spaceId) {
-      const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
-      const newType = await entryTypeModel.save(entrytypeInput, user.id)
-      return newType
+  async createContentType(entrytypeInput, user, spaceId) {
+    const entryTypeModel = think.model('entrytypes', { spaceId: spaceId })
+    entrytypeInput.id = Generate.id()
+    return await entryTypeModel.save(entrytypeInput, user.id)
   }
 
   /**
@@ -129,7 +129,7 @@ module.exports = class extends think.Service {
    * @param user
    * @returns {Promise<{id: *}>}
    */
-  async createOrg (orgName, user) {
+  async createOrg(orgName, user) {
     const orgModel = think.model('orgs');
     const orgId = await this.regElement(ElementType.org)
     // 新增类型注册成功后添加内容
@@ -148,9 +148,9 @@ module.exports = class extends think.Service {
       await usermeta.add({
         userId: user.id,
         metaKey: `org_${orgId}_capabilities`,
-        metaValue: JSON.stringify({'role': role, 'type': 'org'})
+        metaValue: JSON.stringify({ 'role': role, 'type': 'org' })
       })
-      return {id: orgId}
+      return { id: orgId }
     }
   }
 
@@ -160,13 +160,13 @@ module.exports = class extends think.Service {
    * @param user
    * @returns {Promise<*>}
    */
-  async createSpace (spaceInput, user) {
+  async createSpace(spaceInput, user) {
     // createSpace: async (prev, args, context) => {
     const spaceModel = think.model('spaces');
     const userId = user.id
     // 验证组织 ID
     const orgModel = think.model('orgs')
-    const originOrg = await orgModel.where({id: spaceInput.orgId}).field(['id']).find()
+    const originOrg = await orgModel.where({ id: spaceInput.orgId }).field(['id']).find()
     if (think.isEmpty(originOrg) || spaceInput.orgId !== originOrg.id) {
       throw new Error('OrgId is not exists!')
     }
@@ -181,11 +181,11 @@ module.exports = class extends think.Service {
       createdAt: dateNow(),
       updatedAt: dateNow()
     })
-    const db = think.service('fty', {spaceId: spaceId})
+    const db = think.service('fty', { spaceId: spaceId })
     const res = await db.create()
     if (think.isEmpty(res)) {
       // 记录用户 owner
-      const spaceElementsModel = think.model('elements', {spaceId: spaceId})
+      const spaceElementsModel = think.model('elements', { spaceId: spaceId })
       await spaceElementsModel.addMany([{
         id: userId,
         type: ElementType.user,
@@ -198,7 +198,7 @@ module.exports = class extends think.Service {
         updatedAt: dateNow()
       }])
       // 创建环境
-      const envModel = think.model('envs', {spaceId: spaceId})
+      const envModel = think.model('envs', { spaceId: spaceId })
       await envModel.add({
         id: 'master',
         spaceId: spaceId,
@@ -226,10 +226,10 @@ module.exports = class extends think.Service {
     await usermeta.add({
       userId: userId,
       metaKey: `space_${spaceId}_capabilities`,
-      metaValue: JSON.stringify({'role': role, 'type': 'space'})
+      metaValue: JSON.stringify({ 'role': role, 'type': 'space' })
     })
 
-    const persistSpace = await spaceModel.where({id: spaceId}).find()
+    const persistSpace = await spaceModel.where({ id: spaceId }).find()
     return persistSpace
     // }
   }
@@ -241,7 +241,7 @@ module.exports = class extends think.Service {
    * @param userInput
    * @returns {Promise<*>}
    */
-  async createUser (userInput) {
+  async createUser(userInput) {
     // 1 查询组织
     const user = userInput
     // 注册进 elements
@@ -258,9 +258,9 @@ module.exports = class extends think.Service {
     const orgModel = think.model('orgs')
 
     const insertIds = await elementsModel.addMany([
-      {id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow()},
-      {id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow()},
-      {id: spaceId, type: think.elementType.space, createdAt: dateNow(), updatedAt: dateNow()},
+      { id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow() },
+      { id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow() },
+      { id: spaceId, type: think.elementType.space, createdAt: dateNow(), updatedAt: dateNow() },
     ])
 
     if (insertIds.length === 3) {
@@ -268,9 +268,11 @@ module.exports = class extends think.Service {
         id: userId,
         login: user.email,
         email: user.email,
-        password: user.password,
+        password: userModel.getEncryptPassword(user.password),
         displayName: user.displayName,
-        phone: user.phone
+        phone: user.phone,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
       })
 
       await orgModel.add({
@@ -285,6 +287,7 @@ module.exports = class extends think.Service {
       await spaceModel.add({
         id: spaceId,
         orgId: orgId,
+        name: 'demo',
         createdBy: userId,
         updatedBy: userId,
         createdAt: dateNow(),
@@ -292,12 +295,12 @@ module.exports = class extends think.Service {
       })
     }
 
-    const db = think.service('fty', {spaceId: spaceId})
+    const db = think.service('fty', { spaceId: spaceId })
     const res = await db.create()
     // 如果空间应用的相关表创建成功，就开始初始化数据
     if (think.isEmpty(res)) {
       // 记录用户 owner
-      const spaceElementsModel = think.model('elements', {spaceId: spaceId})
+      const spaceElementsModel = think.model('elements', { spaceId: spaceId })
       await spaceElementsModel.addMany([{
         id: userId,
         type: ElementType.user,
@@ -310,7 +313,7 @@ module.exports = class extends think.Service {
         updatedAt: dateNow()
       }])
       // 创建环境
-      const envModel = think.model('envs', {spaceId: spaceId})
+      const envModel = think.model('envs', { spaceId: spaceId })
       await envModel.add({
         id: 'master',
         spaceId: spaceId,
@@ -328,7 +331,7 @@ module.exports = class extends think.Service {
     //   return insertId;
     // })
     // return {token: think.generate.spaceId + '---' + think.generate.id}
-    return {token: userId + '-' + spaceId + '-' + orgId}
+    return { token: userId + '-' + spaceId + '-' + orgId }
   }
 
   /**
@@ -338,17 +341,17 @@ module.exports = class extends think.Service {
    * @param spaceId
    * @returns {Promise<any>}
    */
-  async createField (fieldInput, spaceId) {
-    const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
-    const field = fieldInput.field
+  async createField(fieldInput, spaceId) {
+    const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+    const field = fieldInput
     const typeId = field.typeId
-    const exists = await entrytypeModel.where({id: typeId}).find()
+    const exists = await entrytypeModel.where({ id: typeId }).find()
     if (!exists) {
       throw new Error('Content Type is not exists!')
     }
     // 1 检查 content Type
     // 从缓存中取到所有内容类型验证
-    const fieldModel = think.model('fields', {spaceId: spaceId})
+    const fieldModel = think.model('fields', { spaceId: spaceId })
     await fieldModel.add({
       id: field.id,
       typeId: field.typeId,
@@ -369,10 +372,10 @@ module.exports = class extends think.Service {
     }).update({
       'fields': ['exp', `JSON_ARRAY_APPEND(fields, '$', '${field.id}')`]
     })
-    return await fieldModel.where({id: field.id, typeId: field.typeId}).find()
+    return await fieldModel.where({ id: field.id, typeId: field.typeId }).find()
   }
 
-  async createEntry (entryInput, user, spaceId) {
+  async createEntry(entryInput, user, spaceId) {
     // createEntry: async (prev, args, context) => {
     // let entry = args.entry
     if (Object.is(entryInput.id, undefined)) {
@@ -384,35 +387,22 @@ module.exports = class extends think.Service {
     // fakeDATA
     const fakeFieldsData = {
       "title": {
-        "zh-CN": "这是一个标题"
+        "zh-CN": "这是一本好书"
       },
-      "slug": {
-        "zh-CN": "hello"
-      },
-      "shortDescription": {
-        "zh-CN": "这是一些简短的介绍"
-      },
-      "description": {
-        "zh-CN": "这是内容介绍"
-      },
-      "categories": {
-        "zh-CN": [{
-          "type": "Link",
-          "linkType": "Entry",
-          "id": ""
-        }]
+      "content": {
+        "zh-CN": "这是一本好书"
       }
     }
     // 1 查询出规则
-    const contentType = await think.model('entrytypes', {spaceId: spaceId}).getById(typeId)
+    const contentType = await think.model('entrytypes', { spaceId: spaceId }).getById(typeId)
     // 2 验证内容是否符合规则
     // console.log(contentType)
 
     // 3 符合规则后存储内容
-    const entryModel = think.model('entries', {spaceId: spaceId})
+    const entryModel = think.model('entries', { spaceId: spaceId })
     // 4 根据状态保存内容，默认发布至 versions
     await entryModel.save({
-      entryId: entry.id,
+      entryId: entryInput.id,
       createdBy: userId,
       typeId: typeId,
       data: fakeFieldsData

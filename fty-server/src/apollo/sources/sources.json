@@ -255,6 +255,16 @@
         "disabled": false
       },
       {
+        "name": "typeId",
+        "apiName": "typeId",
+        "title": "内容类型",
+        "type": "Symbol",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false
+      },
+      {
         "name": "instructions",
         "apiName": "instructions",
         "title": "字段说明",

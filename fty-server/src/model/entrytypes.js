@@ -11,14 +11,14 @@ module.exports = class extends Base {
    * @param typeId
    * @returns {Promise<any>}
    */
-  async getById (typeId) {
+  async getById(typeId) {
     const userModel = this.model('users')
-    const oneData = await this.where({id: typeId}).find()
+    const oneData = await this.where({ id: typeId }).find()
     oneData.createdBy = await userModel.getById(oneData.createdBy)
     oneData.updatedBy = await userModel.getById(oneData.updatedBy)
     oneData.fields = JSON.parse(oneData.fields)
     if (oneData.fields.length > 0) {
-      const fieldsList = await this.model('fields', {spaceId: this.spaceId}).where({
+      const fieldsList = await this.model('fields', { spaceId: this.spaceId }).where({
         id: ['IN', oneData.fields],
         typeId: typeId
       }).order(`INSTR (',${oneData.fields},', CONCAT(',',id,','))`).select()
@@ -32,9 +32,8 @@ module.exports = class extends Base {
    * @param userId
    * @returns {Promise<void>}
    */
-  async save (entryType, userId) {
-    const userModel = this.model('users')
-    await this.add({
+  async save(entryType, userId) {
+    const saveAttr = {
       id: entryType.id,
       name: entryType.name,
       fields: JSON.stringify([]),
@@ -42,13 +41,8 @@ module.exports = class extends Base {
       updatedBy: userId,
       createdAt: dateNow(),
       updatedAt: dateNow()
-    })
-    const newType = await this.where({id: entryType.id}).find()
-    if (!think.isEmpty(newType)) {
-      // 待整合进 service
-      newType.createdBy = await userModel.getById(userId)
-      newType.updatedBy = await userModel.getById(userId)
     }
-    return newType
+    await this.add(saveAttr)
+    return saveAttr
   }
 };

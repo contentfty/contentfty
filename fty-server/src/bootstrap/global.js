@@ -16,7 +16,8 @@ global.ElementType = {
   user: 'user',
   space: 'space',
   env: 'env',
-  org: 'org'
+  org: 'org',
+  entry:'entry'
 }
 global.Generate = {
   id: () => {

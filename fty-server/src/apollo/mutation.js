@@ -125,7 +125,6 @@ const buildInputs = async function () {
         const resultFields = {
           id: {type: GraphQLID}
         }
-
         if (structure.type) {
           resultFields._value_ = buildInput(structure)
         } else {
@@ -160,7 +159,7 @@ const buildMutation = async function (ObjectTypes) {
       Object.keys(InputType).forEach(key => {
         const inputs = {}
         inputs[key.toLowerCase()] = {type: InputType[key]}
-        MutationObjects[`edit${key}`] = {
+        MutationObjects[`create${key}`] = {
           type: ObjectTypes[key],
           args: {...inputs},
           resolve: async (root, params, context) => {

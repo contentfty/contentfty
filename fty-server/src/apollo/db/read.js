@@ -29,6 +29,8 @@ const readEntry = async function ({type, id, spaceId}) {
     }
     case 'Entry': {
       const fieldModel = think.model('entries', {spaceId: spaceId});
+      const entryData = await fieldModel.find({id:id})
+      return entryData
       // 返回条目类型mwwp
     }
     case 'Org': {
