@@ -85,11 +85,6 @@ const readEntry = async function ({type, id, spaceId}) {
       return null
     }
   }
-
-  // const fields = await fieldModel.findByGroupId(args.groupId);
-  // return fields;
-  //
-  // return null
 }
 
 module.exports = {
