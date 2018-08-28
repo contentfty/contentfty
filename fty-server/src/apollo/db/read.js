@@ -33,7 +33,19 @@ const readType = async function (type) {
       return null
     }
     default: {
-      return null
+      const entries = await think.model('entries').where({typeId: type}).select()
+      const ids = think._.map(entries, 'id')
+      // 临时测试处理
+      const entryList = await think.model('entryversions').where(
+        {
+          id: ['IN', ids]
+        }
+      ).select()
+      for(let obj of entryList) {
+        obj.fields = JSON.parse(obj.fields)
+      }
+      const fields = think._.map(entryList, 'fields')
+      return fields
     }
   }
 }

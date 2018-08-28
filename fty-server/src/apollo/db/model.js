@@ -16,13 +16,9 @@ const readModel = async function () {
   // console.log(sourcesTypes)
   let modelTypes = []
   // 查询 entryTypes model
-  // const entryTypesModel = think.model('entrytypes')
-  // const entryTypes = await entryTypesModel.getById('posts')
-  // const entryTypes = await entryTypesModel.select()
-  // console.log(sourcesTypes)
-  // modelTypes[0] = entryTypes
-  // console.log(entryTypes)
-  return [...sourcesTypes, ...modelTypes]
+  const entryTypesModel = think.model('entrytypes')
+  const entryTypes = await entryTypesModel.getAll()
+  return [...sourcesTypes, ...entryTypes]
   // return modelTypes
 }
 
