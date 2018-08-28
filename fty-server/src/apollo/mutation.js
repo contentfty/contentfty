@@ -12,7 +12,6 @@ const GraphQLJSON = require('graphql-type-json')
 
 const {writeEntry} = require('./db/write')
 const {deleteEntry} = require('./db/delete')
-const {updateEntry} = require('./db/update')
 const {readModel, writeModel} = require('./db/model')
 
 const LinkDataInputType = new GraphQLInputObjectType({
@@ -160,7 +159,7 @@ const buildMutation = async function (ObjectTypes) {
       Object.keys(InputType).forEach(key => {
         const inputs = {}
         inputs[key.toLowerCase()] = {type: InputType[key]}
-        MutationObjects[`create${key}`] = {
+        MutationObjects[`save${key}`] = {
           type: ObjectTypes[key],
           args: {...inputs},
           resolve: async (root, params, context) => {
@@ -192,20 +191,6 @@ const buildMutation = async function (ObjectTypes) {
           }
         }
 
-        MutationObjects[`edit${key}`] = {
-          type: ObjectTypes[key],
-          args: {...inputs},
-          resolve: async (root, params, context) => {
-            try {
-              if (key === 'Schema') {
-                return []
-              }
-              return await updateEntry(key, params[key.toLowerCase()], context)
-            } catch (error) {
-              throw error
-            }
-          }
-        }
       })
       return MutationObjects
     }

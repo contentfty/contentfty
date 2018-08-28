@@ -255,6 +255,16 @@
         "disabled": false
       },
       {
+        "name": "title",
+        "apiName": "title",
+        "title": "字段标题",
+        "type": "Symbol",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false
+      },
+      {
         "name": "typeId",
         "apiName": "typeId",
         "title": "内容类型",
@@ -431,8 +441,8 @@
     "name": "Entry",
     "fields": [
       {
-        "name": "env",
-        "apiName": "env",
+        "name": "envId",
+        "apiName": "envId",
         "title": "内容环境",
         "type": "Symbol",
         "localized": false,

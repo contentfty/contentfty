@@ -152,6 +152,8 @@ CREATE TABLE `cf_fields`
   COMMENT '内容类型 ID',
   name         VARCHAR(255)                                                                                           NOT NULL
   COMMENT '字段名称',
+  title        VARCHAR(255)                                                                                           NOT NULL
+  COMMENT '字段标题',
   instructions TEXT                                                                                                   NULL
   COMMENT '字段说明信息',
   type         ENUM ('symbol',
@@ -177,7 +179,7 @@ CREATE TABLE `cf_fields`
   created_at   DATETIME                                                                                               NOT NULL,
   updated_at   DATETIME                                                                                               NOT NULL,
   uid          CHAR(36) DEFAULT '0'                                                                                   NOT NULL,
-  PRIMARY KEY (`id`, `type_id`)
+  PRIMARY KEY (`name`, `type_id`)
 )
   ENGINE = InnoDB
   COLLATE = utf8_unicode_ci;

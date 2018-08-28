@@ -114,341 +114,422 @@ module.exports = class extends think.Service {
   }
 
   /**
-   * 创建内容类型
+   * 保存内容类型(创建内容类型 and 更新内容类型)
    * @returns {Promise<*>}
    */
-  async createContentType(entrytypeInput, user, spaceId) {
-    const entryTypeModel = think.model('entrytypes', { spaceId: spaceId })
-    entrytypeInput.id = Generate.id()
-    return await entryTypeModel.save(entrytypeInput, user.id)
-  }
-
-  /**
-   * 更新内容类型
-   */
-  async updateContentType(entrytypeInput,spaceId) {
+  async saveEntryType(entrytypeInput, user, spaceId) {
     if (think.isEmpty(entrytypeInput.id)) {
-      throw new Error('EntryType id is not exists!')
+      const entryTypeModel = think.model('entrytypes', { spaceId: spaceId })
+      const entrytypeExists = await entryTypeModel.where({ name: entrytypeInput.name }).find();
+      if (!think.isEmpty(entrytypeExists)) {
+        throw new Error(`${entrytypeInput.name} already exists!`)
+      }
+
+      const saveParams = {
+        id: Generate.id(),
+        name: entrytypeInput.name,
+        fields: JSON.stringify([]),
+        createdBy: user.id,
+        updatedBy: user.id,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }
+      await entryTypeModel.add(saveParams)
+      return saveParams
+    } else {
+      const entryTypeModel = think.model('entrytypes', { spaceId: spaceId })
+      const entrytypeExists = await entryTypeModel.where({ id: entrytypeInput.id }).find()
+      if (think.isEmpty(entrytypeExists)) {
+        throw new Error('Entry Type does not exists!')
+      }
+      entrytypeInput.updatedAt = dateNow()
+      const affectedRows = await entryTypeModel.where({ id: entrytypeInput.id }).update(entrytypeInput)
+      if (affectedRows > 0) {
+        return await entryTypeModel.where({ id: entrytypeInput.id }).find()
+      }
+      throw new Error('Entry Type update failed!')
     }
-    const entryTypeModel = think.model('entrytypes',{spaceId: spaceId})
-    const exists = await entryTypeModel.where({ id: entrytypeInput.id }).find()
-    if (think.isEmpty(exists)) {
-      throw new Error('EntryType is not exists!')
-    }
-    entrytypeInput.updatedAt = dateNow()
-    const affectedRows = await entryTypeModel.where({ id: entrytypeInput.id }).update(entrytypeInput)
-    if (affectedRows > 0) {
-      return { id: exists.id };
-    }
-    throw new Error('EntryType update fail!')
   }
 
   /**
-   * 创建新组织
-   * @param orgName
+   * 保存组织(创建新组织 and 更新组织)
+   * @param data  {id,name}
    * @param user
    * @returns {Promise<{id: *}>}
    */
-  async createOrg(orgName, user) {
-    const orgModel = think.model('orgs');
-    const orgId = await this.regElement(ElementType.org)
-    // 新增类型注册成功后添加内容
-    if (orgId !== false) {
-      await orgModel.add({
-        id: orgId,
-        name: orgName,
+  async saveOrg(orgInput, user) {
+    if (think.isEmpty(orgInput.id)) {
+      const orgModel = think.model('orgs');
+      const orgId = await this.regElement(ElementType.org)
+      // 新增类型注册成功后添加内容
+      if (orgId !== false) {
+        await orgModel.add({
+          id: orgId,
+          name: orgInput.name,
+          createdBy: user.id,
+          updatedBy: user.id,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        })
+        // 关联组织用户
+        const role = 'owner'
+        const usermetaModel = think.model('usermeta')
+        await usermetaModel.add({
+          userId: user.id,
+          metaKey: `org_${orgId}_capabilities`,
+          metaValue: JSON.stringify({ 'role': role, 'type': 'org' })
+        })
+        return { id: orgId }
+      } else {
+        return this.fail('Organization creation failed!')
+      }
+    } else {
+      const orgModel = think.model('orgs');
+      const orgExists = await orgModel.where({ id: orgInput.id }).find();
+      if (think.isEmpty(orgExists)) {
+        throw new Error('Organization does not exists!')
+      }
+      orgInput.updatedAt = dateNow()
+      const affectedRows = await orgModel.where({ id: orgInput.id }).update(orgInput)
+      if (affectedRows > 0) {
+        return await orgModel.where({ id: orgInput.id }).find()
+      } else {
+        return this.fail('Organization update failed!')
+      }
+    }
+  }
+
+  /**
+   * 保存空间(创建内容空间 and 更新空间)
+   * @param spaceInput
+   * @param user
+   * @returns {Promise<*>}
+   */
+  async saveSpace(spaceInput, user) {
+    if (think.isEmpty(spaceInput.id)) {
+      const spaceModel = think.model('spaces');
+      // 验证组织 ID
+      const orgModel = think.model('orgs')
+      const orgExists = await orgModel.where({ id: spaceInput.orgId }).field(['id']).find()
+      if (think.isEmpty(orgExists)) {
+        throw new Error('Organization does not exists!')
+      }
+
+      // 注册元素 
+      const spaceId = await this.regElement(ElementType.space)
+      await spaceModel.add({
+        id: spaceId,
+        name: spaceInput.name,
+        orgId: spaceInput.orgId,
+        status: 'pending',
         createdBy: user.id,
         updatedBy: user.id,
         createdAt: dateNow(),
         updatedAt: dateNow()
       })
-      // 4 关联组织用户
-      const role = 'owner'
-      const usermeta = think.model('usermeta')
-      await usermeta.add({
+
+      //生成空间表结构
+      const db = think.service('fty', { spaceId: spaceId })
+      const res = await db.create()
+      if (think.isEmpty(res)) {
+        // 记录用户 owner
+        const spaceElementsModel = think.model('elements', { spaceId: spaceId })
+        await spaceElementsModel.addMany([{
+          id: user.id,
+          type: ElementType.user,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        }, {
+          id: 'master',
+          type: ElementType.env,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        }])
+
+        // 创建环境
+        const envModel = think.model('envs', { spaceId: spaceId })
+        await envModel.add({
+          id: 'master',
+          spaceId: spaceId,
+          // FAILURE
+          // PENDING
+          // READY
+          status: 'ready',
+          description: 'Master environment.'
+        })
+
+        // 更新空间状态
+        await spaceModel.where({
+          id: spaceId
+        }).update({
+          status: 'ready',
+          updateAt: dateNow()
+        })
+      } else {
+        return this.fail(res)
+      }
+
+      // 关联 space 用户
+      const role = 'manager'
+      const usermetaModel = think.model('usermeta')
+      await usermetaModel.add({
         userId: user.id,
-        metaKey: `org_${orgId}_capabilities`,
-        metaValue: JSON.stringify({ 'role': role, 'type': 'org' })
-      })
-      return { id: orgId }
-    }
-  }
-
-  /**
-   * 创建内容空间
-   * @param spaceInput
-   * @param user
-   * @returns {Promise<*>}
-   */
-  async createSpace(spaceInput, user) {
-    // createSpace: async (prev, args, context) => {
-    const spaceModel = think.model('spaces');
-    const userId = user.id
-    // 验证组织 ID
-    const orgModel = think.model('orgs')
-    const originOrg = await orgModel.where({ id: spaceInput.orgId }).field(['id']).find()
-    if (think.isEmpty(originOrg) || spaceInput.orgId !== originOrg.id) {
-      throw new Error('OrgId is not exists!')
-    }
-    const spaceId = await this.regElement(ElementType.space)
-    await spaceModel.add({
-      id: spaceId,
-      name: spaceInput.name,
-      orgId: spaceInput.orgId,
-      status: 'pending',
-      createdBy: user.id,
-      updatedBy: user.id,
-      createdAt: dateNow(),
-      updatedAt: dateNow()
-    })
-    const db = think.service('fty', { spaceId: spaceId })
-    const res = await db.create()
-    if (think.isEmpty(res)) {
-      // 记录用户 owner
-      const spaceElementsModel = think.model('elements', { spaceId: spaceId })
-      await spaceElementsModel.addMany([{
-        id: userId,
-        type: ElementType.user,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }, {
-        id: 'master',
-        type: ElementType.env,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }])
-      // 创建环境
-      const envModel = think.model('envs', { spaceId: spaceId })
-      await envModel.add({
-        id: 'master',
-        spaceId: spaceId,
-        // FAILURE
-        // PENDING
-        // READY
-        status: 'ready',
-        description: 'Master environment.'
+        metaKey: `space_${spaceId}_capabilities`,
+        metaValue: JSON.stringify({ 'role': role, 'type': 'space' })
       })
 
-      // 更新空间状态
-      await spaceModel.where({
-        id: spaceId
-      }).update({
-        status: 'ready',
-        updateAt: dateNow()
-      })
+      const persistSpace = await spaceModel.where({ id: spaceId }).find()
+      return persistSpace
     } else {
-      return this.fail(res)
+      const spaceModel = think.model('spaces');
+      const spaceExists = await spaceModel.where({ id: spaceInput.id }).find();
+      if (think.isEmpty(spaceExists)) {
+        throw new Error('Space does not exists!')
+      }
+      const affectedRows = await spaceModel.where({ id: spaceInput.id }).update({
+        name: spaceInput.name,
+        updatedAt: dateNow()
+      })
+      if (affectedRows > 0) {
+        return await spaceModel.where({ id: spaceInput.id }).find()
+      } else {
+        return this.fail('Space update failed!')
+      }
     }
-
-    // 关联 space 用户
-    const role = 'manager'
-    const usermeta = think.model('usermeta')
-    await usermeta.add({
-      userId: userId,
-      metaKey: `space_${spaceId}_capabilities`,
-      metaValue: JSON.stringify({ 'role': role, 'type': 'space' })
-    })
-
-    const persistSpace = await spaceModel.where({ id: spaceId }).find()
-    return persistSpace
-    // }
   }
 
   /**
-   * 创建新用户
+   * 保存用户 (创建新用户 and 更新用户)
    * 一般情况都由 Controller 中的 signup 注册用户
    * 此处为系统平台的创建功能
    * @param userInput
    * @returns {Promise<*>}
    */
-  async createUser(userInput) {
-    // 1 查询组织
-    const user = userInput
-    // 注册进 elements
-    // 1 添加 user 类型
-    // 2 添加 space 类型
-    // 3 添加组织类型
-    const userId = Generate.id()
-    const spaceId = Generate.spaceId()
-    const orgId = Generate.id()
+  async saveUser(userInput) {
+    if (think.isEmpty(userInput.id)) {  // 创建新用户
+      /*
+        1. 注册进 elements (添加user类型，添加org类型)
+        2. add user
+        3. add org
+        4. add usermeta 关联组织用户
+      */
+      const userId = Generate.id()
+      const orgId = Generate.id()
 
-    const elementsModel = think.model('elements')
-    const userModel = think.model('users')
-    const spaceModel = think.model('spaces')
-    const orgModel = think.model('orgs')
+      const elementsModel = think.model('elements')
+      const userModel = think.model('users')
+      const orgModel = think.model('orgs')
 
-    const insertIds = await elementsModel.addMany([
-      { id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow() },
-      { id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow() },
-      { id: spaceId, type: think.elementType.space, createdAt: dateNow(), updatedAt: dateNow() },
-    ])
+      const insertIds = await elementsModel.addMany([
+        { id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow() },
+        { id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow() },
+      ])
 
-    if (insertIds.length === 3) {
-      await userModel.add({
-        id: userId,
-        login: user.email,
-        email: user.email,
-        password: userModel.getEncryptPassword(user.password),
-        displayName: user.displayName,
-        phone: user.phone,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      })
+      if (insertIds.length === 2) {
+        // add user
+        await userModel.add({
+          id: userId,
+          login: userInput.email,
+          email: userInput.email,
+          password: userModel.getEncryptPassword(userInput.password),
+          displayName: userInput.displayName,
+          phone: userInput.phone,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        })
 
-      await orgModel.add({
-        id: orgId,
-        name: slugName(user.org),
-        createdBy: userId,
-        updatedBy: userId,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      })
+        // add org
+        await orgModel.add({
+          id: orgId,
+          name: slugName(userInput.org),
+          createdBy: userId,
+          updatedBy: userId,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        })
 
-      await spaceModel.add({
-        id: spaceId,
-        orgId: orgId,
-        name: 'demo',
-        createdBy: userId,
-        updatedBy: userId,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      })
+        const role = 'owner'
+        const usermetaModel = think.model('usermeta')
+        await usermetaModel.add({
+          userId: userId,
+          metaKey: `org_${orgId}_capabilities`,
+          metaValue: JSON.stringify({ 'role': role, 'type': 'org' })
+        })
+
+        const token = await think.service('authService').generateToken({
+          id: userId,
+          email: userInput.email,
+          displayName: userInput.displayName
+        })
+        return { token: token }
+      } else {
+        return this.fail('User registration failed!')
+      }
+    } else {  //编辑用户
+      if (!think.isEmpty(userInput.password)) {
+        delete userInput['password']    //password 属性需要单独更新
+      }
+      const userModel = think.model('users')
+      const userExists = await userModel.where({ id: userInput.id }).find()
+      if (think.isEmpty(userExists)) {
+        throw new Error('User does not exists!')
+      }
+      userInput.updatedAt = dateNow()
+      const affectedRows = await userModel.where({ id: userInput.id }).update(userInput)
+      if (affectedRows > 0) {
+        return { id: userExists.id }
+      } else {
+        return this.fail('User update failed!')
+      }
     }
-
-    const db = think.service('fty', { spaceId: spaceId })
-    const res = await db.create()
-    // 如果空间应用的相关表创建成功，就开始初始化数据
-    if (think.isEmpty(res)) {
-      // 记录用户 owner
-      const spaceElementsModel = think.model('elements', { spaceId: spaceId })
-      await spaceElementsModel.addMany([{
-        id: userId,
-        type: ElementType.user,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }, {
-        id: 'master',
-        type: ElementType.env,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }])
-      // 创建环境
-      const envModel = think.model('envs', { spaceId: spaceId })
-      await envModel.add({
-        id: 'master',
-        spaceId: spaceId,
-        // FAILURE
-        // PENDING
-        // READY
-        status: 'ready',
-        description: 'Master environment.'
-      })
-    } else {
-      return this.fail(res)
-    }
-    // const result = await this.transaction(async () => {
-    //   const insertId = await this.add(data);
-    //   return insertId;
-    // })
-    // return {token: think.generate.spaceId + '---' + think.generate.id}
-    return { token: userId + '-' + spaceId + '-' + orgId }
   }
 
   /**
-   * 更新用户信息
-   * @param userInput 
-   */
-  async updateUser(userInput) {
-    if (think.isEmpty(userInput.id)) {
-      throw new Error('User id is not exists!')
-    }
-    const userModel = think.model('users')
-    const exists = await userModel.where({ id: userInput.id }).find()
-    if (think.isEmpty(exists)) {
-      throw new Error('User is not exists!')
-    }
-    userInput.updatedAt = dateNow()
-    const affectedRows = await userModel.where({ id: userInput.id }).update(userInput)
-    if (affectedRows > 0) {
-      return { id: exists.id };
-    }
-    throw new Error('User update fail!')
-  }
-
-  /**
-   * 创建内容类型的内容字段
+   * 保存字段(创建内容类型字段 and 更新内容类型字段)
    *
    * @param fieldInput
    * @param spaceId
    * @returns {Promise<any>}
    */
-  async createField(fieldInput, spaceId) {
-    const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
-    const field = fieldInput
-    const typeId = field.typeId
-    const exists = await entrytypeModel.where({ id: typeId }).find()
-    if (!exists) {
-      throw new Error('Content Type is not exists!')
+  async saveField(fieldInput, spaceId) {
+    //name 和 typeId 作为联合唯一  , 但name允许被修改，根据id来处理
+    if (think.isEmpty(fieldInput.id)) {
+      const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+
+      //判断内容类型存在
+      const entrytypeExists = await entrytypeModel.where({ id: fieldInput.typeId }).find()
+      if (think.isEmpty(entrytypeExists)) {
+        throw new Error('Entry Type does not exists!')
+      }
+
+      const fieldModel = think.model('fields', { spaceId: spaceId })
+      const fieldExists = await fieldModel.where({ name: fieldInput.name, typeId: fieldInput.typeId }).find()
+      if (!think.isEmpty(fieldExists)) {
+        throw new Error(`${fieldInput.name} already exists!`)
+      }
+      const id = Generate.id()
+      await fieldModel.add({
+        id: id,
+        typeId: fieldInput.typeId,
+        name: fieldInput.name,
+        title: fieldInput.title,
+        type: fieldInput.type,
+        instructions: fieldInput.instructions,
+        unique: fieldInput.unique,
+        required: fieldInput.required,
+        disabled: fieldInput.disabled,
+        validations: fieldInput.validations,
+        settings: fieldInput.settings,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      })
+      // 更新内容类型
+      await entrytypeModel.where({
+        id: fieldInput.typeId
+      }).update({
+        'fields': ['exp', `JSON_ARRAY_APPEND(fields, '$', '${id}')`]
+      })
+      return await fieldModel.where({ id: id }).find()
+    } else {
+      if (think.isEmpty(fieldInput.name)) {
+        throw new Error('name does not exists!')
+      }
+      if (think.isEmpty(fieldInput.typeId)) {
+        throw new Error('typeId does not exists!')
+      }
+
+      //判断内容类型存在
+      const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+      const entrytypeExists = await entrytypeModel.where({ id: fieldInput.typeId }).find()
+      if (think.isEmpty(entrytypeExists)) {
+        throw new Error('Entry Type does not exists!')
+      }
+
+      const fieldModel = think.model('fields', { spaceId: spaceId })
+      //检测新修改的name和typeId组合是否已经存在
+      const exists = await fieldModel.where({ name: fieldInput.name, typeId: fieldInput.typeId }).find()
+      if (!think.isEmpty(exists)) {
+        throw new Error(`${fieldInput.name} already exists!`)
+      }
+
+      //判断字段存在
+      const fieldExists = await fieldModel.where({ id: fieldInput.id }).find()
+      if (think.isEmpty(fieldExists)) {
+        throw new Error('Field does not exists!')
+      }
+
+      if (fieldInput.typeId !== fieldExists.typeId) {
+        throw new Error('typeId does not match!')
+      }
+
+      fieldInput.updatedAt = dateNow()
+      await fieldModel.where({ id: fieldInput.id }).update(fieldInput)
+
+      return await fieldModel.where({ id: fieldInput.id }).find()
     }
-    // 1 检查 content Type
-    // 从缓存中取到所有内容类型验证
-    const fieldModel = think.model('fields', { spaceId: spaceId })
-    await fieldModel.add({
-      id: field.id,
-      typeId: field.typeId,
-      name: field.name,
-      type: field.type,
-      instructions: field.instructions,
-      unique: field.unique,
-      required: field.required,
-      disabled: field.disabled,
-      validations: field.validations,
-      settings: field.settings,
-      createdAt: dateNow(),
-      updatedAt: dateNow()
-    })
-    // 更新内容类型表
-    await entrytypeModel.where({
-      id: typeId
-    }).update({
-      'fields': ['exp', `JSON_ARRAY_APPEND(fields, '$', '${field.id}')`]
-    })
-    return await fieldModel.where({ id: field.id, typeId: field.typeId }).find()
   }
 
-  async createEntry(entryInput, user, spaceId) {
-    // createEntry: async (prev, args, context) => {
-    // let entry = args.entry
-    if (Object.is(entryInput.id, undefined)) {
-      entryInput.id = await think.service('fty').regElement(ElementType.entry)
-    }
-    const userId = user.id
-    // const typeId = args.typeId
-    const typeId = entryInput.typeId
-    // fakeDATA
-    const fakeFieldsData = {
-      "title": {
-        "zh-CN": "这是一本好书"
-      },
-      "content": {
-        "zh-CN": "这是一本好书"
+  /**
+   * 保存内容条目 (创建内容条目 and 更新内容条目)
+   * @param {*} entryInput 
+   * @param {*} user 
+   * @param {*} spaceId 
+   */
+  async saveEntry(entryInput, user, spaceId) {
+    if (think.isEmpty(entryInput.id)) {
+      //entry id
+      const id = await think.service('fty').regElement(ElementType.entry)
+      // data
+      // const data = {
+      //   "title": {
+      //     "zh-CN": "这是一本好书"
+      //   },
+      //   "content": {
+      //     "zh-CN": "这是一本好书"
+      //   }
+      // }
+      // 检测内容类型存在
+      const entrytypeModel = await think.model('entrytypes', { spaceId: spaceId })
+      const entrytypeExists = await entrytypeModel.where({ id: entryInput.typeId }).find()
+      if (think.isEmpty(entrytypeExists)) {
+        throw new Error('Entry Type does not exists!')
       }
-    }
-    // 1 查询出规则
-    const contentType = await think.model('entrytypes', { spaceId: spaceId }).getById(typeId)
-    // 2 验证内容是否符合规则
-    // console.log(contentType)
 
-    // 3 符合规则后存储内容
-    const entryModel = think.model('entries', { spaceId: spaceId })
-    // 4 根据状态保存内容，默认发布至 versions
-    await entryModel.save({
-      entryId: entryInput.id,
-      createdBy: userId,
-      typeId: typeId,
-      data: fakeFieldsData
-    })
-    // }
+      const entryModel = await think.model('entries', { spaceId: spaceId })
+
+      // 新增  第一个参数为要添加的数据，第二个参数为添加的条件，根据第二个参数的条件查询无相关记录时才会添加
+      await entryModel.thenAdd({
+        id: id,
+        typeId: entryInput.typeId,
+        createdBy: user.id,
+        postDate: dateNow(),
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }, { id: id })
+
+      const type = 'version'  //TODO 默认保存在版本中 (后续需要修改)
+      // 保存至草稿
+      if (type === 'draft') {
+        //const draftModel = think.getModel('entrydrafts')
+      } else {
+        // 保存版本
+        const versionModel = await think.model('entryversions', { spaceId: spaceId })
+        //获取字段的最大值
+        const maxNum = await versionModel.where({ entryId: id }).max('num')
+
+        await versionModel.add({
+          entryId: id,
+          num: maxNum ? maxNum + 1 : 1,
+          fields: JSON.stringify(entryInput.fields),
+          createdBy: user.id,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        })
+      }
+      return { id: id }
+    }else{  // todo 
+
+    }
   }
 }
 
