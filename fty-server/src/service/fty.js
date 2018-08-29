@@ -539,8 +539,8 @@ module.exports = class extends think.Service {
         //获取字段的最大值
         const maxNum = await versionModel.where({ entryId: id }).max('num')
 
-        // 内容结构
-        //let str = '{"title": {"zh-CN": "php基础"},"counts": {"zh-CN": "10"}}'
+        // 内容结构 todo ...
+        entryInput.fields = entryInput.fields ? entryInput.fields : '{"title": {"zh-CN": "php基础"},"content": {"zh-CN": "跑去玩的拉克丝的"}}'
 
         await versionModel.add({
           entryId: id,
@@ -660,7 +660,7 @@ module.exports = class extends think.Service {
     const fieldModel = think.model('fields', { spaceId: spaceId })
 
     //entries
-    const entryModel = await think.model('entries')
+    const entryModel = await think.model('entries',{ spaceId: spaceId })
     const entries = await entryModel.where({ typeId: entrytypeInput.id }).select()
     if (!think.isEmpty(entries)) {
       const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
@@ -687,7 +687,68 @@ module.exports = class extends think.Service {
    * @param {*} spaceId 
    */
   async deleteField(fieldInput, spaceId) {
+    /*
+    info: 删除字段
+    1. 处理entrytypes表中的fields字段
+    2. 根据typeId（内容类型Id）获取条目列表(entries)
+    3. 根据entryId（条目Id）更新 entryversions（版本）和 entrydrafts（草稿）中的fields字段内容
+    4. fileds 删除字段记录
+    */
+    if (!think.isEmpty(fieldInput.id)) {
+      throw new Error('Field id does not exists!')
+    }
+
+    const fieldModel = think.model('fields', { spaceId: spaceId })
+    const fieldExists = await fieldModel.where({ id: fieldInput.id }).find()
+    if (!think.isEmpty(fieldExists)) {
+      throw new Error('Field does not exists!')
+    }
+
+    //entrytypes
+    const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+    const entrytypeExists = await entrytypeModel.where({ id: fieldExists.typeId }).find()
+    if (think.isEmpty(entrytypeExists)) {
+      throw new Error('Entry Type does not exists!')
+    }
+
+    // 更新内容类型的fields字段内容
+    await entrytypeModel.where({
+      id: fieldExists.typeId
+    }).update({
+      'fields': ['exp', `JSON_REMOVE(fields, '$', '${fieldInput.id}')`]
+    })
+
+    //entries
+    const entryModel = await think.model('entries',{ spaceId: spaceId })
+    const entries = await entryModel.where({ typeId: fieldExists.typeId }).select()
+
+    // todo ...
     
+    // if (!think.isEmpty(entries)) {
+    //   const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
+    //   const versionModel = await think.model('entryversions', { spaceId: spaceId })
+    //   entries.forEach(async (entry) => {
+    //     // 假如该条目内容的状态是属于
+    //     const drafts = await draftsModel.where({ entryId: entry.id }).find()
+    //     if(!think.isEmpty(drafts)){
+
+    //     }
+
+    //     const version = await versionModel.where({ entryId: entry.id }).find()
+    //     //删除版本
+    //     await versionModel.where({ entryId: entry.id }).delete()
+    //   });
+    // }
+
+
+
+    // 保存版本
+    //const versionModel = await think.model('entryversions', { spaceId: spaceId })
+
+    //获取字段的最大值
+    //const maxNum = await versionModel.where({ entryId: id }).max('num')
+
+    return true;
   }
 
 }

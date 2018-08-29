@@ -82,8 +82,7 @@ CREATE TABLE `cf_entrydrafts` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '内容条目草稿自增主键 ID',
   `entryId` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '内容条目 ID',
   `createdBy` char(21) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '条目名称',
-  `data` json NOT NULL COMMENT '条目内容',
+  `fields` json NOT NULL COMMENT '条目内容',
   `createdAt` datetime NOT NULL COMMENT '创建时间',
   `updatedAt` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
