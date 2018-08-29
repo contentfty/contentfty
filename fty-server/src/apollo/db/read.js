@@ -4,34 +4,48 @@
  * 按类型查询出内容列表
  * @returns {Promise<Array>}
  */
-const readType = async function ({ type, spaceId }) {
+const readType = async function (type) {
+  // return []
   switch (type) {
     case 'User': {
       const fieldModel = think.model('users');
-      const usersData = await fieldModel.select()
-      return usersData
+      const userData = await fieldModel.getById(id)
+      return userData
     }
     case 'Entry': {
-      const fieldModel = think.model('entries', { spaceId: spaceId });
-      const entryData = await fieldModel.find({ id: id })
-      return entryData
+      return await think.model('entries').select()
+      // const fieldModel = think.model('entries', {spaceId: spaceId});
+      // 返回条目类型mwwp
+    }
+    case 'EntryType': {
+      return await think.model('entrytypes').select()
+      // const fieldModel = think.model('entries', {spaceId: spaceId});
       // 返回条目类型mwwp
     }
     case 'Org': {
-      const fieldModel = think.model('orgs');
-      const orgsData = await fieldModel.select()
-      return orgsData
+      // return null
+      return await think.model('orgs').select()
     }
     case 'Space': {
-      const fieldModel = think.model('spaces');
-      const spacesData = await fieldModel.select()
-      return spacesData
+      return await think.model('spaces').select()
     }
     case 'Field': {
       return null
     }
     default: {
-      return []
+      const entries = await think.model('entries').where({typeId: type}).select()
+      const ids = think._.map(entries, 'id')
+      // 临时测试处理
+      const entryList = await think.model('entryversions').where(
+        {
+          id: ['IN', ids]
+        }
+      ).select()
+      for(let obj of entryList) {
+        obj.fields = JSON.parse(obj.fields)
+      }
+      const fields = think._.map(entryList, 'fields')
+      return fields
     }
   }
 }
@@ -44,33 +58,22 @@ const readType = async function ({ type, spaceId }) {
  * @param spaceId 空间ID
  * @returns {Promise<*>}
  */
-const readEntry = async function ({ type, id, spaceId }) {
+const readEntry = async function ({type, id, spaceId}) {
   if (id === 'undefined') {
     return null
   }
-
-  switch (type) {
+  switch (type.toString()) {
     case 'User': {
       const fieldModel = think.model('users');
       const userData = await fieldModel.getById(id)
       return userData
     }
     case 'Entry': {
-      const fieldModel = think.model('entries', { spaceId: spaceId });
-      const entryData = await fieldModel.find({ id: id })
-
-      // const fieldEntryVersionsModel = think.model('entryversions', { spaceId: spaceId });
-      // const entryVersionsData = await fieldEntryVersionsModel.where({entryId:entryData.id}).select()
-      // let data = entryData
-      // data.fields = entryVersionsData
-      // console.log(data)
-      return entryData
+      const fieldModel = think.model('entries', {spaceId: spaceId});
       // 返回条目类型mwwp
     }
     case 'Org': {
-      const fieldModel = think.model('orgs');
-      const orgData = await fieldModel.find({ id: id })
-      return orgData
+      return null
     }
     case 'Space': {
       return null
@@ -82,11 +85,6 @@ const readEntry = async function ({ type, id, spaceId }) {
       return null
     }
   }
-
-  // const fields = await fieldModel.findByGroupId(args.groupId);
-  // return fields;
-  //
-  // return null
 }
 
 module.exports = {
