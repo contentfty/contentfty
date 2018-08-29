@@ -1,0 +1,56 @@
+[
+  {
+    "id": "cate",
+    "name": "category",
+    "fields": "[]",
+    "createdBy": "9NWpXSZHqZ9t1AXKFuZQz",
+    "updatedBy": "9NWpXSZHqZ9t1AXKFuZQz",
+    "createdAt": "2018-08-18 11:56:56",
+    "updatedAt": "2018-08-18 11:56:56",
+    "metas": []
+  },
+  {
+    "id": "posts",
+    "name": "MyPosts",
+    "fields": [
+      {
+        "id": "title",
+        "typeId": "posts",
+        "name": "title",
+        "instructions": null,
+        "type": "text",
+        "unique": 0,
+        "required": 0,
+        "disabled": 0,
+        "validations": null,
+        "settings": null,
+        "updatedAt": "2018-08-25 11:47:42",
+        "createdAt": "2018-08-25 11:47:43",
+        "localized": 0,
+        "title": null
+      }
+    ],
+    "createdBy": "8NOH4Wl0lsKgNDcY8PEII",
+    "updatedBy": "8NOH4Wl0lsKgNDcY8PEII",
+    "createdAt": "2018-08-18 11:57:26",
+    "updatedAt": "2018-08-18 11:57:26",
+    "metas": [
+      {
+        "id": "title",
+        "typeId": "posts",
+        "name": "title",
+        "instructions": null,
+        "type": "text",
+        "unique": 0,
+        "required": 0,
+        "disabled": 0,
+        "validations": null,
+        "settings": null,
+        "updatedAt": "2018-08-25 11:47:42",
+        "createdAt": "2018-08-25 11:47:43",
+        "localized": 0,
+        "title": null
+      }
+    ]
+  }
+]

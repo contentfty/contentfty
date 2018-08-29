@@ -1,0 +1,25 @@
+.c-editor-author.is-placeholder .c-editor-author__name {
+  animation: pulse-light 0.8s ease-in-out infinite;
+  background: $gray-lighten-20;
+  display: inline-block;
+  height: 14px;
+  width: 100px;
+  position: relative;
+  top: 3px;
+}
+
+.c-editor-author .gravatar {
+  vertical-align: middle;
+}
+
+.c-editor-author__name {
+  color: $gray-darken-10;
+  font-size: 13px;
+  margin: 0 8px;
+
+  @include breakpoint( "<480px" ) {
+    display: none;
+  }
+}
+
+

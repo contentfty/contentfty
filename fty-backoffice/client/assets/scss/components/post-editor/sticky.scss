@@ -1,0 +1,20 @@
+.c-editor-sticky.c-button {
+  opacity: 0;
+  cursor: default;
+  transition: opacity 200ms;
+  padding: 0;
+  &.is-sticky {
+    color: $orange-jazzy;
+    opacity: 1;
+    cursor: pointer;
+  }
+}
+
+.c-editor-sticky__explanation {
+  display: block;
+  font-size: 11px;
+}
+
+.c-editor-sticky__tooltip .c-popover__inner {
+  white-space: nowrap;
+}

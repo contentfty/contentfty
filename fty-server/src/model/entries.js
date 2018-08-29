@@ -5,6 +5,9 @@ const Base = require('./base');
  * 内容条目 Model
  */
 module.exports = class extends Base {
+  async list (type) {
+
+  }
   /**
    * 保存内容条目
    * @param entryId
@@ -16,7 +19,6 @@ module.exports = class extends Base {
    * @returns {Promise<void>}
    */
   async save ({entryId, createdBy, typeId, data}, type, env) {
-    console.log(entryId)
     // 新增
     await this.thenAdd({
       id: entryId,

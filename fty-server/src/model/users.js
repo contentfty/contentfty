@@ -14,16 +14,16 @@ let fields = [
 ]
 module.exports = class extends think.Model {
 
-  get relation () {
-    return {
-      metas: {
-        type: think.Model.HAS_MANY,
-        model: 'usermeta',
-        fKey: 'userId',
-        field: "userId,metaKey,metaValue"
-      }
-    }
-  }
+  // get relation () {
+  //   return {
+  //     metas: {
+  //       type: think.Model.HAS_MANY,
+  //       model: 'usermeta',
+  //       fKey: 'userId',
+  //       field: "userId,metaKey,metaValue"
+  //     }
+  //   }
+  // }
 
   /**
    * get password

@@ -1,0 +1,270 @@
+.is-group-editor::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  //background-color: $white;
+  pointer-events: none;
+  z-index: z-index( 'root', '.is-group-editor::before' );
+}
+
+.is-group-editor .sidebar {
+  left: auto;
+  right: -273px;
+}
+
+@include breakpoint( "<660px" ) {
+  .is-group-editor.focus-sidebar::before,
+  .is-group-editor.focus-editor-confirmation-sidebar::before {
+    background-color: $gray-lighten-30;
+  }
+
+  .is-group-editor .c-sidebar {
+    right: auto;
+  }
+
+}
+
+.is-group-editor .o-layout__content {
+  //padding: 47px 0 0;
+  padding: 18px 0 0;
+  overflow: inherit;
+}
+
+.c-post-editor__inner {
+  position: relative;
+  padding-bottom: 47px;
+}
+
+.c-post-editor__content {
+  position: relative;
+  margin: 0;
+  backface-visibility: hidden;
+  perspective: 1000;
+  display: none;
+
+  .focus-content & {
+    display: block;
+  }
+
+  @include breakpoint( ">660px" ) {
+    display: block;
+    backface-visibility: visible;
+    perspective: none;
+  }
+}
+
+.c-post-editor__content {
+  margin: 0 auto; // born centered, so when width collapses for sidebar anim it doesn't move
+  left: 0;
+
+  .focus-sidebar &,
+  .focus-editor-confirmation-sidebar & {
+    left: ( $sidebar-width-max / -2 );
+    width: calc( 100% - ( #{ $sidebar-width-max } ) ); // subtract sidebar width
+  }
+}
+
+.c-post-editor__site {
+  display:  flex;
+  margin-bottom: 16px;
+  background: $gray-lighten-30;
+
+  @include breakpoint( ">660px" ) {
+    display: none;
+  }
+
+  .c-site__content {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .c-site__title,
+  .c-site__domain {
+    &::after {
+      @include long-content-fade( $color: $gray-lighten-30 );
+    }
+  }
+
+  .c-editor-status-label {
+    text-align: right;
+    align-self: center;
+    margin-right: 8px;
+  }
+}
+
+.c-post-editor__header,
+.c-post-editor .mce-container-body,
+.c-post-editor .tinymce {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.focus-content .c-post-editor__header {
+  @include breakpoint( ">660px" ) {
+    width: 700px;
+  }
+}
+
+.c-post-editor__header,
+.c-post-editor .mce-edit-area {
+  box-sizing: border-box;
+  padding: 0 16px;
+
+  @include breakpoint( ">1040px" ) {
+    padding: 0;
+  }
+}
+
+.c-post-editor .draft .post-relative-time-status {
+  display: none;
+}
+
+// Component <Editor>
+.c-post-editor__content-editor {
+  position: relative;
+}
+
+.c-post-editor__content-editor .c-editor-notice .notice {
+  @include breakpoint( ">660px" ) {
+    margin: 0;
+  }
+}
+
+/*
+ * Constrain the `MediaLibraryDropZone` to the editor content area, instead of taking up the entire
+ * screen. This allows room for the `FeaturedImageDropZone`.
+ *
+ * It's only done while an image is actively being dragged, because it interferes with TinyMCE
+ * toolbar pinning/unpinning.
+ */
+.c-post-editor__content-editor .c-editor-featured-image.has-active-drop-zone ~ div.c-tinymce-container {
+  position: relative;
+}
+
+.c-post-editor .c-tinymce-container.c-editor-mode-tinymce .drop-zone.is-active {
+  top: 75px; /* Move it below the TinyMCE toolbar, because it looks bad when they overlap */
+}
+
+.c-post-editor .c-tinymce-container.c-editor-mode-html .drop-zone.is-active {
+  top: 40px; /* Move it below the TinyMCE toolbar, because it looks bad when they overlap */
+}
+
+.c-post-editor .c-tinymce {
+  min-height: 100vh;
+  resize: none;
+  border-width: 0;
+  padding: 32px 11px; /* Inherited from TinyMCE iframe body */
+
+  // typography for HTML view
+  font-family: $monospace;
+  font-size: 14px;
+  margin-bottom: 64px;
+
+  @include breakpoint( "<480px" ) {
+    padding: 24px 27px; /* 27px = 16px + the 11px padding on Visual mode */
+    margin-bottom: 0;
+  }
+
+  &:focus {
+    border-color: $gray-lighten-20;
+    box-shadow: none;
+  }
+}
+
+.c-post-editor__header {
+  position: relative;
+  padding-bottom: 27px;
+}
+
+.c-post-editor__switch-mode {
+  position: absolute;
+  right: 16px;
+  width: 160px;
+  z-index: z-index( 'root', '.c-post-editor__switch-mode' );
+
+  @include breakpoint( ">960px" ) {
+    right: 32px;
+  }
+
+  @include breakpoint( ">1040px" ) {
+    right: 0;
+  }
+}
+
+.c-post-editor__switch-mode .c-segmented-control__item {
+  &:first-of-type {
+    .c-segmented-control__link {
+      border-bottom-left-radius: 0;
+    }
+  }
+
+  &:last-of-type {
+    .c-segmented-control__link {
+      border-right-color: $gray-lighten-20;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  &.is-selected {
+    + .c-segmented-control__item .c-segmented-control__link {
+      border-left-color: $gray-lighten-20;
+    }
+  }
+}
+
+.c-post-editor__switch-mode .c-segmented-control__link {
+  background: $gray-light;
+  border-color: $gray-lighten-20;
+}
+
+.c-post-editor__switch-mode .c-segmented-control__item.is-selected .c-segmented-control__link {
+  border-color: $gray-lighten-20;
+  border-bottom-color: $white;
+  background-color: $white;
+}
+
+.c-post-editor__header-divider {
+  background-color: lighten( $gray, 25% );
+  max-width: 700px;
+  margin: 0 auto;
+
+  & ~ .mce-tinymce {
+    margin-top: -1px;
+  }
+}
+
+.c-post-editor .c-drafts__list + .c-list-end::after {
+  background-color: $gray-lighten-30;
+}
+
+.c-post-editor .c-draft {
+  padding: 16px;
+}
+
+.c-post-editor__content-editor .c-editor-featured-image {
+  display: none;
+  border-bottom: 1px solid lighten( $gray, 20 );
+  border-top: 1px solid lighten( $gray, 20 );
+  box-shadow: inset 0 0 2px 2px rgba( lighten( $gray, 10 ), 0.1 );
+  background: rgba( lighten( $gray, 30 ), 0.3 );
+
+  overflow: hidden;
+
+  &.is-assigned {
+    display: block;
+    padding: 12px 0 18px; /* Make room for the RemoveButton */
+
+    @include breakpoint( ">660px" ) {
+      margin: -24px 0 24px;
+    }
+  }
+
+  img {
+    margin: 0 auto;
+    max-height: 400px;
+  }
+}
