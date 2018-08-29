@@ -285,7 +285,6 @@ CREATE TABLE `cf_spaces` (
   `createdBy` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '创建者',
   `updatedBy` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '更新者',
   `status` enum('ready','pending','failure') COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '空间状态',
-  `deleted` tinyint(2) DEFAULT '0' COMMENT '删除 0:正常,1已删除',
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
