@@ -479,15 +479,7 @@ module.exports = class extends think.Service {
     if (think.isEmpty(entryInput.id)) {
       //entry id
       const id = await think.service('fty').regElement(ElementType.entry)
-      // data
-      // const data = {
-      //   "title": {
-      //     "zh-CN": "这是一本好书"
-      //   },
-      //   "content": {
-      //     "zh-CN": "这是一本好书"
-      //   }
-      // }
+
       // 检测内容类型存在
       const entrytypeModel = await think.model('entrytypes', { spaceId: spaceId })
       const entrytypeExists = await entrytypeModel.where({ id: entryInput.typeId }).find()
@@ -517,18 +509,43 @@ module.exports = class extends think.Service {
         //获取字段的最大值
         const maxNum = await versionModel.where({ entryId: id }).max('num')
 
+        // 内容结构
+        //let str = '{"title": {"zh-CN": "php基础"},"counts": {"zh-CN": "10"}}'
+
         await versionModel.add({
           entryId: id,
           num: maxNum ? maxNum + 1 : 1,
-          fields: JSON.stringify(entryInput.fields),
+          fields: entryInput.fields,
           createdBy: user.id,
           createdAt: dateNow(),
           updatedAt: dateNow()
         })
       }
       return { id: id }
-    }else{  // todo 
+    } else {  // todo 
+      const entryModel = await think.model('entries', { spaceId: spaceId })
+      const entryExists = await entryModel.where({ id: entryInput.id }).find()
+      if (think.isEmpty(entryExists)) {
+        throw new Error('Entry does not exists!')
+      }
 
+      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      const entryversionsExists = await versionModel.where({ entryId: entryInput.id }).order('num DESC').limit(1).find()
+      if (think.isEmpty(entryversionsExists)) {
+        throw new Error('Entry Versions does not exists!')
+      }
+
+      // let str = '{"title": {"zh-CN": "php基础02"},"counts": {"zh-CN": "10"}}'
+      await versionModel.add({
+        entryId: entryInput.id,
+        num: entryversionsExists.num + 1,
+        fields: entryInput.fields,
+        createdBy: user.id,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      })
+
+      return { id: entryInput.id }
     }
   }
 }
