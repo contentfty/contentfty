@@ -74,6 +74,32 @@ module.exports = class extends think.Service {
 
   }
 
+  async drop() {
+    const db = think.model('mysql', think.config('model'));
+    const dbConfig = think.config('model.mysql');
+    const dbFile = think.ROOT_PATH + '/scripts/drop.sql';
+    if (!think.isFile(dbFile)) {
+      return Promise.reject('数据库文件（drop.sql）不存在，请重新下载');
+    }
+
+    let content = fs.readFileSync(dbFile, 'utf8');
+    content = content.split('\n').join(' ');
+    content = content.replace(/\/\*.*?\*\//g, '').replace(/cf_/g, dbConfig.prefix + this.config.spaceId + '_' || '');
+    content = content.split(';');
+    try {
+      for (let item of content) {
+        item = item.trim();
+        if (item) {
+          await db.query(item);
+        }
+      }
+      return true
+    } catch (e) {
+      think.logger.error(e)
+      throw new Error('drop tables fail!')
+    }
+  }
+
   async init() {
     // 创建内容类型
     // const entryType = think.model('entrytypes')
@@ -112,6 +138,10 @@ module.exports = class extends think.Service {
       return false
     }
   }
+
+  ///////////////////////////////////
+  ///////////*** 保存操作 ***/////////
+  ///////////////////////////////////
 
   /**
    * 保存内容类型(创建内容类型 and 更新内容类型)
@@ -548,5 +578,117 @@ module.exports = class extends think.Service {
       return { id: entryInput.id }
     }
   }
+
+  ///////////////////////////////////
+  ///////////*** 删除操作 ***/////////
+  ///////////////////////////////////
+
+  /**
+   * 删除用户
+   * @param {*} userInput 
+   */
+  async deleteUser(userInput) {
+    if (think.isEmpty(userInput.id)) {
+      throw new Error('User id does not exists!')
+    }
+
+    const userModel = await think.model('users')
+    const userExists = await userModel.where({ id: userInput.id }).find()
+    if (think.isEmpty(userExists)) {
+      throw new Error('User does not exists!')
+    }
+
+    //逻辑删除
+    const affectedRows = await userModel.where({ id: userInput.id }).update({ deleted: 1 })
+    if (affectedRows > 0) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 删除空间
+   * @param {*} spaceInput 
+   */
+  async deleteSpace(spaceInput) {
+    const spaceId = spaceInput.id
+    if (think.isEmpty(spaceId)) {
+      throw new Error('Space id does not exists!')
+    }
+    const spaceModel = await think.model('spaces')
+    const spaceExists = await spaceModel.where({ id: spaceId }).find()
+    if (think.isEmpty(spaceExists)) {
+      throw new Error('Space does not exists!')
+    }
+
+    const db = think.service('fty', { spaceId: spaceId })
+    const isDrop = await db.drop() //删除空间关联表
+    if (isDrop) {
+      const affectedRows = await spaceModel.where({ id: spaceId }).delete()
+      if (affectedRows > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * 删除内容类型
+   * @param {*} entrytypeInput 
+   * @param {*} spaceId 
+   */
+  async deleteEntryType(entrytypeInput, spaceId) {
+    /*
+      注意: 以下操作全属于物理删除，删除的数据将不可恢复。
+      1. 删除草稿表中的记录
+      2. 删除版本表中的记录
+      3. 删除条目表中的记录
+      4. 删除字段表中的记录
+      5. 删除内容类型表中的记录
+     */
+    if (think.isEmpty(entrytypeInput.id)) {
+      throw new Error('Entry Type id does not exists!')
+    }
+    //entrytypes
+    const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+    const entrytypeExists = await entrytypeModel.where({ id: entrytypeInput.id }).find()
+    if (think.isEmpty(entrytypeExists)) {
+      throw new Error('Entry Type does not exists!')
+    }
+
+    //field
+    const fieldModel = think.model('fields', { spaceId: spaceId })
+
+    //entries
+    const entryModel = await think.model('entries')
+    const entries = await entryModel.where({ typeId: entrytypeInput.id }).select()
+    if (!think.isEmpty(entries)) {
+      const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
+      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      entries.forEach(async (entry) => {
+        //删除草稿
+        await draftsModel.where({ entryId: entry.id }).delete()
+        //删除版本
+        await versionModel.where({ entryId: entry.id }).delete()
+      });
+      //删除条目
+      await entryModel.where({ typeId: entrytypeInput.id }).delete()
+    }
+    //删除字段
+    await fieldModel.where({ typeId: entrytypeInput.id }).delete()
+    //删除内容类型
+    await entrytypeModel.where({ id: entrytypeInput.id }).delete()
+    return true;
+  }
+
+  /**
+   * 删除字段
+   * @param {*} fieldInput 
+   * @param {*} spaceId 
+   */
+  async deleteField(fieldInput, spaceId) {
+    
+  }
+
 }
 
