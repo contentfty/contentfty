@@ -525,7 +525,7 @@ module.exports = class extends think.Service {
         const draftModel = await think.model('entrydrafts', { spaceId: spaceId })
         await draftModel.add({
           entryId: id,
-          fields: JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" }),//entryInput.fields
+          fields: entryInput.fields,//JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" }),//entryInput.fields
           createdBy: user.id,
           createdAt: dateNow(),
           updatedAt: dateNow()
@@ -537,7 +537,7 @@ module.exports = class extends think.Service {
         const maxNum = await versionModel.where({ entryId: id }).max('num')
 
         // 内容结构 todo ...
-        entryInput.fields = entryInput.fields ? entryInput.fields : JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" })
+        //entryInput.fields = entryInput.fields ? entryInput.fields : JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" })
 
         await versionModel.add({
           entryId: id,
@@ -672,10 +672,13 @@ module.exports = class extends think.Service {
       const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
       const versionModel = await think.model('entryversions', { spaceId: spaceId })
       entries.forEach(async (entry) => {
-        //删除草稿
-        await draftsModel.where({ entryId: entry.id }).delete()
-        //删除版本
-        await versionModel.where({ entryId: entry.id }).delete()
+        if (think.isEmpty(entry.postDate)) {
+          //删除草稿
+          await draftsModel.where({ entryId: entry.id }).delete()
+        } else {
+          //删除版本
+          await versionModel.where({ entryId: entry.id }).delete()
+        }
       });
       //删除条目
       await entryModel.where({ typeId: entrytypeInput.id }).delete()
