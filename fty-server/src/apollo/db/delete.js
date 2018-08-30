@@ -7,7 +7,8 @@ const deleteEntry = async function (type, data, context) {
       return isDelete ? json(0, 'success') : json(1, 'fail')
     }
     case 'Entry': {
-      return null;
+      const isDelete = await fty.deleteEntry(data,context.spaceId)
+      return isDelete ? json(0, 'success') : json(1, 'fail')
     }
     case 'EntryType': {
       const isDelete = await fty.deleteEntryType(data, context.spaceId)
@@ -21,22 +22,10 @@ const deleteEntry = async function (type, data, context) {
       return isDelete ? json(0, 'success') : json(1, 'fail')
     }
     case 'Field': {
-      return null
+      const isDelete = await fty.deleteField(data,context.user,context.spaceId)
+      return isDelete ? json(0, 'success') : json(1, 'fail')
     }
     default: {
-      // const entries = await think.model('entries').where({typeId: type}).select()
-      // const ids = think._.map(entries, 'id')
-      // // 临时测试处理
-      // const entryList = await think.model('entryversions').where(
-      //   {
-      //     id: ['IN', ids]
-      //   }
-      // ).select()
-      // for(let obj of entryList) {
-      //   obj.fields = JSON.parse(obj.fields)
-      // }
-      // const fields = think._.map(entryList, 'fields')
-      // return fields
       return null;
     }
   }

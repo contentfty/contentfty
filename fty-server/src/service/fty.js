@@ -519,20 +519,17 @@ module.exports = class extends think.Service {
 
       const entryModel = await think.model('entries', { spaceId: spaceId })
 
-      // 新增  第一个参数为要添加的数据，第二个参数为添加的条件，根据第二个参数的条件查询无相关记录时才会添加
-      await entryModel.thenAdd({
-        id: id,
-        typeId: entryInput.typeId,
-        createdBy: user.id,
-        postDate: dateNow(),
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }, { id: id })
-
       const type = 'version'  //TODO 默认保存在版本中 (后续需要修改)
       // 保存至草稿
-      if (type === 'draft') {
-        //const draftModel = think.getModel('entrydrafts')
+      if (type !== 'draft') {
+        const draftModel = await think.model('entrydrafts', { spaceId: spaceId })
+        await draftModel.add({
+          entryId: id,
+          fields: JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" }),//entryInput.fields
+          createdBy: user.id,
+          createdAt: dateNow(),
+          updatedAt: dateNow()
+        })
       } else {
         // 保存版本
         const versionModel = await think.model('entryversions', { spaceId: spaceId })
@@ -540,7 +537,7 @@ module.exports = class extends think.Service {
         const maxNum = await versionModel.where({ entryId: id }).max('num')
 
         // 内容结构 todo ...
-        entryInput.fields = entryInput.fields ? entryInput.fields : '{"title": {"zh-CN": "php基础"},"content": {"zh-CN": "跑去玩的拉克丝的"}}'
+        entryInput.fields = entryInput.fields ? entryInput.fields : JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" })
 
         await versionModel.add({
           entryId: id,
@@ -551,6 +548,17 @@ module.exports = class extends think.Service {
           updatedAt: dateNow()
         })
       }
+
+      // 新增  第一个参数为要添加的数据，第二个参数为添加的条件，根据第二个参数的条件查询无相关记录时才会添加
+      await entryModel.thenAdd({
+        id: id,
+        typeId: entryInput.typeId,
+        createdBy: user.id,
+        postDate: type !== 'version' ? dateNow() : null,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }, { id: id })
+
       return { id: id }
     } else {  // todo 
       const entryModel = await think.model('entries', { spaceId: spaceId })
@@ -564,8 +572,6 @@ module.exports = class extends think.Service {
       if (think.isEmpty(entryversionsExists)) {
         throw new Error('Entry Versions does not exists!')
       }
-
-      // let str = '{"title": {"zh-CN": "php基础02"},"counts": {"zh-CN": "10"}}'
       await versionModel.add({
         entryId: entryInput.id,
         num: entryversionsExists.num + 1,
@@ -660,7 +666,7 @@ module.exports = class extends think.Service {
     const fieldModel = think.model('fields', { spaceId: spaceId })
 
     //entries
-    const entryModel = await think.model('entries',{ spaceId: spaceId })
+    const entryModel = await think.model('entries', { spaceId: spaceId })
     const entries = await entryModel.where({ typeId: entrytypeInput.id }).select()
     if (!think.isEmpty(entries)) {
       const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
@@ -686,7 +692,7 @@ module.exports = class extends think.Service {
    * @param {*} fieldInput 
    * @param {*} spaceId 
    */
-  async deleteField(fieldInput, spaceId) {
+  async deleteField(fieldInput, user, spaceId) {
     /*
     info: 删除字段
     1. 处理entrytypes表中的fields字段
@@ -694,13 +700,13 @@ module.exports = class extends think.Service {
     3. 根据entryId（条目Id）更新 entryversions（版本）和 entrydrafts（草稿）中的fields字段内容
     4. fileds 删除字段记录
     */
-    if (!think.isEmpty(fieldInput.id)) {
+    if (think.isEmpty(fieldInput.id)) {
       throw new Error('Field id does not exists!')
     }
 
     const fieldModel = think.model('fields', { spaceId: spaceId })
     const fieldExists = await fieldModel.where({ id: fieldInput.id }).find()
-    if (!think.isEmpty(fieldExists)) {
+    if (think.isEmpty(fieldExists)) {
       throw new Error('Field does not exists!')
     }
 
@@ -711,45 +717,90 @@ module.exports = class extends think.Service {
       throw new Error('Entry Type does not exists!')
     }
 
+    //获取字段数组
+    const arr = JSON.parse(entrytypeExists.fields)
+    //获取字段在数组的索引位置
+    let fieldIndex = arr.indexOf(`${fieldInput.id}`)
+
     // 更新内容类型的fields字段内容
     await entrytypeModel.where({
       id: fieldExists.typeId
     }).update({
-      'fields': ['exp', `JSON_REMOVE(fields, '$', '${fieldInput.id}')`]
+      'fields': ['exp', `JSON_REMOVE(fields, '$[${fieldIndex}]')`]
     })
 
     //entries
-    const entryModel = await think.model('entries',{ spaceId: spaceId })
+    const entryModel = await think.model('entries', { spaceId: spaceId })
     const entries = await entryModel.where({ typeId: fieldExists.typeId }).select()
 
-    // todo ...
-    
-    // if (!think.isEmpty(entries)) {
-    //   const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
-    //   const versionModel = await think.model('entryversions', { spaceId: spaceId })
-    //   entries.forEach(async (entry) => {
-    //     // 假如该条目内容的状态是属于
-    //     const drafts = await draftsModel.where({ entryId: entry.id }).find()
-    //     if(!think.isEmpty(drafts)){
+    if (!think.isEmpty(entries)) {
+      const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
+      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      entries.forEach(async (entry) => {
+        if (think.isEmpty(entry.postDate)) {  //草稿
+          const drafts = await draftsModel.where({ entryId: entry.id }).find()
+          if (!think.isEmpty(drafts)) {
+            let newFields = drafts.fields ? JSON.parse(drafts.fields) : null
+            //删除移除的字段
+            delete newFields[`${fieldExists.name}`]
 
-    //     }
+            await draftsModel.where({ entryId: entry.id }).update({
+              fields: newFields ? JSON.stringify(newFields) : null,
+              updatedAt: dateNow()
+            })
+          }
+        } else {  //已发布
+          const version = await versionModel.where({ entryId: entry.id }).order('num DESC').limit(1).find()
+          if (!think.isEmpty(version)) {
+            let newFields = version.fields ? JSON.parse(version.fields) : null
+            //删除移除的字段
+            delete newFields[`${fieldExists.name}`]
 
-    //     const version = await versionModel.where({ entryId: entry.id }).find()
-    //     //删除版本
-    //     await versionModel.where({ entryId: entry.id }).delete()
-    //   });
-    // }
+            await versionModel.add({
+              entryId: entry.id,
+              num: version.num + 1,
+              fields: newFields ? JSON.stringify(newFields) : null,
+              createdBy: user.id,
+              createdAt: dateNow(),
+              updatedAt: dateNow()
+            })
+          }
+        }
+      });
+    }
 
-
-
-    // 保存版本
-    //const versionModel = await think.model('entryversions', { spaceId: spaceId })
-
-    //获取字段的最大值
-    //const maxNum = await versionModel.where({ entryId: id }).max('num')
-
+    await fieldModel.where({ id: fieldInput.id }).delete()
     return true;
   }
 
+  /**
+   * 删除条目内容
+   * @param {*} entryInput 
+   * @param {*} spaceId 
+   */
+  async deleteEntry(entryInput, spaceId) {
+    if (think.isEmpty(entryInput.id)) {
+      throw new Error('Entry id does not exists!')
+    }
+    const entryModel = await think.model('entries', { spaceId: spaceId })
+    const entryExists = await entryModel.where({ id: entryInput.id }).find()
+    if (think.isEmpty(entryExists)) {
+      throw new Error('Entry does not exists!')
+    }
+
+    if (think.isEmpty(entryExists.postDate)) {
+      const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
+      await draftsModel.where({
+        entryId: entryInput.id
+      }).delete()
+    } else {
+      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      await versionModel.where({
+        entryId: entryInput.id
+      }).delete()
+    }
+    await entryModel.where({ id: entryInput.id }).delete()
+    return true
+  }
 }
 
