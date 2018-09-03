@@ -82,8 +82,7 @@ CREATE TABLE `cf_entrydrafts` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '内容条目草稿自增主键 ID',
   `entryId` char(21) COLLATE utf8_unicode_ci NOT NULL COMMENT '内容条目 ID',
   `createdBy` char(21) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '条目名称',
-  `data` json NOT NULL COMMENT '条目内容',
+  `fields` json NOT NULL COMMENT '条目内容',
   `createdAt` datetime NOT NULL COMMENT '创建时间',
   `updatedAt` datetime NOT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
@@ -193,6 +192,7 @@ CREATE TABLE `cf_fields` (
   `id` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '字段 ID',
   `typeId` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '内容类型 ID',
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '字段名称',
+  `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL COMMENT '字段标题',
   `instructions` text COLLATE utf8_unicode_ci COMMENT '字段说明信息',
   `type` enum('symbol','text','integer','number','date','location','boolean','link','array','object') COLLATE utf8_unicode_ci NOT NULL COMMENT '字段的类型',
   `unique` tinyint(1) NOT NULL DEFAULT '0',
@@ -203,7 +203,7 @@ CREATE TABLE `cf_fields` (
   `updatedAt` datetime NOT NULL,
   `createdAt` datetime NOT NULL,
   `localized` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`,`typeId`)
+  PRIMARY KEY (`name`,`typeId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

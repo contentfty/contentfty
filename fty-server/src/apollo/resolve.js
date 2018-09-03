@@ -7,7 +7,7 @@ const {inspectEntry, graphqlQuerySerialize} = require('./db/inspect');
 
 const read = function (type, id = null, spaceId = null) {
   // if ID Query single object els All
-  return id === null ? readType(type) : [readEntry({type, id, spaceId})];
+  return id === null ? readType({type,spaceId}) : [readEntry({type, id, spaceId})];
 }
 
 const inspect = async function (root, modelTypes) {

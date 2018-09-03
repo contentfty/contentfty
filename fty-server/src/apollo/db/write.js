@@ -11,22 +11,22 @@ const emptyField = function (field) {
 const writeEntry = async function (type, data, context) {
   switch (type) {
     case 'User': {
-      return await fty.createUser(data)
+      return await fty.saveUser(data)
     }
     case 'Org': {
-      return await fty.createOrg(data.name, context.user)
+      return await fty.saveOrg(data, context.user)
     }
     case 'Space': {
-      return await fty.createSpace(data, context.user)
+      return await fty.saveSpace(data, context.user)
     }
     case 'EntryType': {
-      return await fty.createContentType(data, context.user, context.spaceId)
+      return await fty.saveEntryType(data, context.user, context.spaceId)
     }
     case 'Entry': {
-      return await fty.createEntry(data, context.user, context.spaceId)
+      return await fty.saveEntry(data, context.user, context.spaceId)
     }
     case 'Field': {
-      return await fty.createField(data, context.spaceId)
+      return await fty.saveField(data, context.spaceId)
     }
     default: {
       return null

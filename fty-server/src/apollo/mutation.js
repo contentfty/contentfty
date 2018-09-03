@@ -1,18 +1,19 @@
-const {isString, fromPairs} = require('lodash')
+const { isString, fromPairs } = require('lodash')
 
 const {
   GraphQLObjectType,
   GraphQLInputObjectType,
   GraphQLID,
   GraphQLList,
-  GraphQLString
+  GraphQLString,
+  GraphQLInt
 } = require('graphql')
 
 const GraphQLJSON = require('graphql-type-json')
 
-const {writeEntry} = require('./db/write')
-const {deleteEntry} = require('./db/delete')
-const {readModel, writeModel} = require('./db/model')
+const { writeEntry } = require('./db/write')
+const { deleteEntry } = require('./db/delete')
+const { readModel, writeModel } = require('./db/model')
 
 const LinkDataInputType = new GraphQLInputObjectType({
   name: 'LinkDataInput',
@@ -103,15 +104,15 @@ const buildInput = field => {
   }
   switch (field.type[0]) {
     case 'link':
-      return {type: LinkInputType}
+      return { type: LinkInputType }
     case 'links':
-      return {type: LinksInputType}
+      return { type: LinksInputType }
     case 'map':
-      return {type: MapInputType}
+      return { type: MapInputType }
     case 'json':
-      return {type: GraphQLJSON}
+      return { type: GraphQLJSON }
     default:
-      return {type: GraphQLString}
+      return { type: GraphQLString }
   }
 }
 
@@ -123,9 +124,8 @@ const buildInputs = async function () {
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
-          id: {type: GraphQLID}
+          id: { type: GraphQLID }
         }
-
         if (structure.type) {
           resultFields._value_ = buildInput(structure)
         } else {
@@ -146,8 +146,8 @@ const buildDeleteObject = key =>
   new GraphQLObjectType({
     name: `_DeleteObject${key}_`,
     fields: {
-      _id_: {type: GraphQLID},
-      message: {type: GraphQLString}
+      code: { type: GraphQLInt },
+      message: { type: GraphQLString }
     }
   })
 
@@ -159,10 +159,10 @@ const buildMutation = async function (ObjectTypes) {
     fields: () => {
       Object.keys(InputType).forEach(key => {
         const inputs = {}
-        inputs[key.toLowerCase()] = {type: InputType[key]}
-        MutationObjects[`edit${key}`] = {
+        inputs[key.toLowerCase()] = { type: InputType[key] }
+        MutationObjects[`save${key}`] = {
           type: ObjectTypes[key],
-          args: {...inputs},
+          args: { ...inputs },
           resolve: async (root, params, context) => {
             try {
               if (key === 'Schema') {
@@ -180,15 +180,16 @@ const buildMutation = async function (ObjectTypes) {
 
         MutationObjects[`delete${key}`] = {
           type: buildDeleteObject(key),
-          args: {...inputs},
+          args: { ...inputs },
           resolve: async (root, params, context) => {
-            // try {
-            return []
-            // 业务服务管理接口
-            // return await deleteEntry(key, params[key.toLowerCase()])
-            // } catch (error) {
-            //   throw error
-            // }
+            try {
+              if (key === 'Schema') {
+                return []
+              }
+              return await deleteEntry(key, params[key.toLowerCase()],context)
+            } catch (error) {
+              throw error
+            }
           }
         }
 
