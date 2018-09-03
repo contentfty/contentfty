@@ -12,8 +12,8 @@ import { setContext, getLocation, getRouteData } from './utils'
 
 
 /* Plugins */
-import nuxt_plugin_toast_20cfd787 from 'nuxt_plugin_toast_20cfd787' // Source: ./toast.js (ssr: false)
-import nuxt_plugin_axios_549f8ad8 from 'nuxt_plugin_axios_549f8ad8' // Source: ./axios.js
+import nuxt_plugin_toast_71e66c16 from 'nuxt_plugin_toast_71e66c16' // Source: ./toast.js (ssr: false)
+import nuxt_plugin_axios_b493c132 from 'nuxt_plugin_axios_b493c132' // Source: ./axios.js
 import nuxt_plugin_veevalidate_3f7cf8b3 from 'nuxt_plugin_veevalidate_3f7cf8b3' // Source: ../plugins/vee-validate.js
 import nuxt_plugin_axios_54e49ad0 from 'nuxt_plugin_axios_54e49ad0' // Source: ../plugins/axios.js
 import nuxt_plugin_svgicon_71385126 from 'nuxt_plugin_svgicon_71385126' // Source: ../plugins/svgicon (ssr: false)
@@ -138,12 +138,12 @@ async function createApp (ssrContext) {
 
   // Plugin execution
   
-  if (typeof nuxt_plugin_axios_549f8ad8 === 'function') await nuxt_plugin_axios_549f8ad8(app.context, inject)
+  if (typeof nuxt_plugin_axios_b493c132 === 'function') await nuxt_plugin_axios_b493c132(app.context, inject)
   if (typeof nuxt_plugin_veevalidate_3f7cf8b3 === 'function') await nuxt_plugin_veevalidate_3f7cf8b3(app.context, inject)
   if (typeof nuxt_plugin_axios_54e49ad0 === 'function') await nuxt_plugin_axios_54e49ad0(app.context, inject)
   
   if (process.browser) { 
-    if (typeof nuxt_plugin_toast_20cfd787 === 'function') await nuxt_plugin_toast_20cfd787(app.context, inject)
+    if (typeof nuxt_plugin_toast_71e66c16 === 'function') await nuxt_plugin_toast_71e66c16(app.context, inject)
     if (typeof nuxt_plugin_svgicon_71385126 === 'function') await nuxt_plugin_svgicon_71385126(app.context, inject)
   }
 
