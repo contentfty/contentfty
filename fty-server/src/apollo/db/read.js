@@ -4,47 +4,51 @@
  * 按类型查询出内容列表
  * @returns {Promise<Array>}
  */
-const readType = async function (type) {
-  // return []
+const readType = async function ({ type, spaceId }) {
   switch (type) {
     case 'User': {
       const fieldModel = think.model('users');
-      const userData = await fieldModel.getById(id)
+      const userData = await fieldModel.select()
       return userData
     }
     case 'Entry': {
-      return await think.model('entries').select()
-      // const fieldModel = think.model('entries', {spaceId: spaceId});
-      // 返回条目类型mwwp
+      return await think.model('entries', { spaceId: spaceId }).select()
     }
     case 'EntryType': {
-      return await think.model('entrytypes').select()
-      // const fieldModel = think.model('entries', {spaceId: spaceId});
-      // 返回条目类型mwwp
+      return await think.model('entrytypes', { spaceId: spaceId }).select()
     }
     case 'Org': {
-      // return null
       return await think.model('orgs').select()
     }
     case 'Space': {
       return await think.model('spaces').select()
     }
     case 'Field': {
-      return null
+      return await think.model('fields', { spaceId: spaceId }).select()
     }
     default: {
-      const entries = await think.model('entries').where({typeId: type}).select()
+      const et = await think.model('entrytypes', { spaceId: spaceId }).where({
+        name: type
+      }).find()
+      
+      if (think.isEmpty(et)) {
+        return []
+      }
+
+      const entries = await think.model('entries', { spaceId: spaceId }).where({ typeId: et.id }).select()
       const ids = think._.map(entries, 'id')
       // 临时测试处理
-      const entryList = await think.model('entryversions').where(
+      const entryList = await think.model('entryversions', { spaceId: spaceId }).where(
         {
-          id: ['IN', ids]
+          entryId: ['IN', ids]
         }
       ).select()
-      for(let obj of entryList) {
+      for (let obj of entryList) {
         obj.fields = JSON.parse(obj.fields)
       }
+      console.log(entryList)
       const fields = think._.map(entryList, 'fields')
+      console.log(fields)
       return fields
     }
   }
@@ -58,7 +62,7 @@ const readType = async function (type) {
  * @param spaceId 空间ID
  * @returns {Promise<*>}
  */
-const readEntry = async function ({type, id, spaceId}) {
+const readEntry = async function ({ type, id, spaceId }) {
   if (id === 'undefined') {
     return null
   }
@@ -69,7 +73,7 @@ const readEntry = async function ({type, id, spaceId}) {
       return userData
     }
     case 'Entry': {
-      const fieldModel = think.model('entries', {spaceId: spaceId});
+      const fieldModel = think.model('entries', { spaceId: spaceId });
       // 返回条目类型mwwp
     }
     case 'Org': {
