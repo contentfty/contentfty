@@ -13,13 +13,11 @@ const readModel = async function () {
   // const modelPath = pat.resolve()
   const sourcesPath = path.resolve('../fty-server/src/apollo/sources/sources.json')
   const sourcesTypes = await fs.readJson(sourcesPath)
-  // console.log(sourcesTypes)
-  let modelTypes = []
+
   // 查询 entryTypes model
   const entryTypesModel = think.model('entrytypes')
   const entryTypes = await entryTypesModel.getAll()
   return [...sourcesTypes, ...entryTypes]
-  // return modelTypes
 }
 
 /**

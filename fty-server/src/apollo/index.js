@@ -5,9 +5,10 @@ const {buildSchema} = require('../apollo/schema')
 module.exports = (options = {}) => {
 
   return async ctx => {
-    const schema = await buildSchema()
-    options.schema = schema
     const spaceId = ctx.request.header['x-space-id']
+    const schema = await buildSchema(spaceId)
+    options.schema = schema
+    
     // 上下文配置
     options.context = think.extend(options.context, {
       user: ctx.state.user,

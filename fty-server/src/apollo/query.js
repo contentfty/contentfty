@@ -1,4 +1,4 @@
-const {map, fromPairs} = require('lodash')
+const { map, fromPairs } = require('lodash')
 const {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -11,8 +11,10 @@ const {
   GraphQLFloat
 } = require('graphql')
 const GraphQLJSON = require('graphql-type-json')
-const {readModel, getTypesNames} = require('./db/model')
-const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
+const { readModel, getTypesNames } = require('./db/model')
+const { read, readChild, readChildren, readMap, inspect } = require('./resolve')
+const { entryTypes } = require('./db/read');
+
 
 // const RichTextType = new GraphQLScalarType({
 //   name: 'RichText',
@@ -27,31 +29,31 @@ const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
 const buildSchemaObject = function () {
   return new GraphQLObjectType({
     name: 'Schema',
-    fields: {name: {type: GraphQLString}}
+    fields: { name: { type: GraphQLString } }
   })
 }
 
-const buildObjects = async function () {
+const buildObjects = async function (spaceId) {
   const model = await readModel()
   const modelTypes = getTypesNames(model)
 
   const EntryInterface = new GraphQLInterfaceType({
     name: 'EntryInterface',
     fields: {
-      id: {type: GraphQLID},
+      id: { type: GraphQLID },
       // _id_: {type: GraphQLID},
       // _newId_: {type: GraphQLID},
-      _type_: {type: GraphQLString},
-      _tree_: {type: GraphQLString}
+      _type_: { type: GraphQLString },
+      _tree_: { type: GraphQLString }
     },
     resolveType: value => ObjectTypes[value._type_]
   })
   const KeyValuePair = new GraphQLObjectType({
     name: 'KeyValuePair',
     fields: () => ({
-      _key_: {type: GraphQLString},
-      _value_: {type: EntryInterface},
-      _list_: {type: new GraphQLList(EntryInterface)}
+      _key_: { type: GraphQLString },
+      _value_: { type: EntryInterface },
+      _list_: { type: new GraphQLList(EntryInterface) }
     })
   });
 
@@ -61,13 +63,14 @@ const buildObjects = async function () {
     let type
     switch (fieldType) {
       case 'Symbol':
-        return {type: GraphQLString}
+        return { type: GraphQLString }
       case 'Date':
-        return {type: GraphQLString}
+        return { type: GraphQLString }
       case 'Boolean':
-        return {type: GraphQLBoolean}
+        return { type: GraphQLBoolean }
       case 'Link': {
         type = ObjectTypes[field.linkType]
+
         // case 'link':
         //   type = field.type[1] === '*' ? EntryInterface : ObjectTypes[field.type[1]];
         // return {type: GraphQLString};
@@ -83,9 +86,8 @@ const buildObjects = async function () {
         }
         return {
           type,
-          resolve: root => readChildren(field.items.linkType, root.id)
+          resolve: (root) => readChildren(field.items.linkType, root.id, spaceId)
         }
-        // return {type: GraphQLString}
       }
       // case 'links':
       //   type =
@@ -108,7 +110,7 @@ const buildObjects = async function () {
       // case 'image':
       //   return {type: ImageType};
       default:
-        return {type: GraphQLString};
+        return { type: GraphQLString };
     }
   };
   const ObjectTypes = fromPairs(
@@ -117,14 +119,14 @@ const buildObjects = async function () {
         structure.name,
         new GraphQLObjectType({
           name: structure.name,
-          interfaces: [EntryInterface],
+          // interfaces: [EntryInterface],
           fields: () => ({
-            id: {type: GraphQLID},
-            _type_: {type: GraphQLString},
-            _tree_: {
-              type: GraphQLString,
-              resolve: root => inspect(root, modelTypes)
-            },
+            id: { type: GraphQLID },
+            // _type_: { type: GraphQLString },
+            // _tree_: {
+            //   type: GraphQLString,
+            //   resolve: root => inspect(root, modelTypes)
+            // },
             ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
           })
         })
@@ -144,8 +146,8 @@ const buildQuery = function (ObjectTypes) {
           key,
           {
             type: new GraphQLList(value),
-            args: {id: {type: GraphQLID}, spaceId: {type: GraphQLID}},
-            resolve: (root, {id, spaceId}) => read(key, id, spaceId)
+            args: { id: { type: GraphQLID }, spaceId: { type: GraphQLID } },
+            resolve: (root, { id, spaceId }) => read(key, id, spaceId)
           }
         ])
       )

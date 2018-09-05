@@ -15,7 +15,9 @@ const readType = async function ({ type, spaceId }) {
       return await think.model('entries', { spaceId: spaceId }).select()
     }
     case 'EntryType': {
-      return await think.model('entrytypes', { spaceId: spaceId }).select()
+      const entrytypesModel = await think.model('entrytypes', { spaceId: spaceId })
+      // let data = await entrytypesModel.page(page, limit).countSelect();
+      return await entrytypesModel.select();
     }
     case 'Org': {
       return await think.model('orgs').select()
@@ -30,7 +32,7 @@ const readType = async function ({ type, spaceId }) {
       const et = await think.model('entrytypes', { spaceId: spaceId }).where({
         name: type
       }).find()
-      
+
       if (think.isEmpty(et)) {
         return []
       }
@@ -63,14 +65,18 @@ const readType = async function ({ type, spaceId }) {
  * @returns {Promise<*>}
  */
 const readEntry = async function ({ type, id, spaceId }) {
-  if (id === 'undefined') {
+  if (think.isEmpty(id)) {
     return null
   }
-  switch (type.toString()) {
+  switch (type) {
     case 'User': {
       const fieldModel = think.model('users');
       const userData = await fieldModel.getById(id)
       return userData
+    }
+    case 'EntryType': {
+      const entrytypesModel = await think.model('entrytypes', { spaceId: spaceId })
+      return await entrytypesModel.where({id:id}).find();
     }
     case 'Entry': {
       const fieldModel = think.model('entries', { spaceId: spaceId });
@@ -91,7 +97,26 @@ const readEntry = async function ({ type, id, spaceId }) {
   }
 }
 
+////////////////////接口/////////////////////
+const entryTypes = async function (id, spaceId) {
+  if (think.isEmpty(id)) {
+    let limit = 1000;
+    let page = 1;
+
+    const entrytypesModel = await think.model('entrytypes', { spaceId: spaceId })
+    //获取内容类型json列表结构 
+    let data = await entrytypesModel.page(page, limit).countSelect();
+
+    console.log(data)
+    return [data];
+  }
+
+  return []
+}
+
+
 module.exports = {
   readType,
-  readEntry
+  readEntry,
+  entryTypes
 }
