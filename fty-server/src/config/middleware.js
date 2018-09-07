@@ -1,4 +1,6 @@
 const path = require('path');
+const cors = require('@koa/cors')
+
 const isDev = think.env === 'development';
 const graphql = require('../apollo');
 // const { makeExecutableSchema } = require('graphql-tools');
@@ -42,6 +44,27 @@ module.exports = [
     }
   },
   {
+    handle: (option, app) => {
+      return (ctx, next) => {
+        return next().catch((err) => {
+          // eslint-disable-next-line yoda
+          if (401 === err.status) {
+            ctx.status = 401;
+            ctx.body = 'Protected resource, use Authorization header to get access\n';
+          } else {
+            ctx.body = 'Protected resource, use Authorization header to get access\n';
+            throw err;
+          }
+        });
+      };
+    }
+  },
+  {
+    handle: cors,
+    options: {}
+  },
+
+  {
     handle: jwt,
     options: {
       cookie: think.config('jwt').cookie,
@@ -54,13 +77,14 @@ module.exports = [
       console.log(ctx.url)
       if (ctx.url.match(ctx.url.match(/^\/api\/v1\/account\/signup?/) ||
         ctx.url.match(/^\/api\/v1\/account\/signin?/) ||
-        ctx.url.match(/^\/api\/v1\/auth\/token|verify?/))) {
+        ctx.url.match(/^\/api\/auth\/login?/))) {
         return false;
       } else if (ctx.url.match(ctx.url.match(/^\/graphql*?/) || ctx.url.match(/^\/api*?/))) {
         return true
       }
     }
   },
+
   {
     handle: 'router',
     options: {}

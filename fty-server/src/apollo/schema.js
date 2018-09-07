@@ -10,10 +10,11 @@ const buildSchema = async function (spaceId) {
   const objectTypes = await buildObjects(spaceId)
   const queryType = await buildQuery(objectTypes)
   const mutationType = await buildMutation(objectTypes)
-  return new GraphQLSchema({
+  const schema = new GraphQLSchema({
     query: queryType,
     mutation: mutationType
   })
+  return schema
 }
 
 module.exports = {
