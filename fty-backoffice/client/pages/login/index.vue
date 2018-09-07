@@ -1,92 +1,80 @@
 <template>
   <div>
     <main class="c-main c-login">
-      <div class="c-hero">
-        <div class="c-hero__img">
-          <div class="c-login__main ">
-            <div class="c-login__container">
-              <div class="c-login">
-                <div class="c-login__form-header-wrapper">
-                  <div class="c-login__form-header u-flex u-align-items-center u-justify-center">
-                    <!--<img :src="org.logo_url" style="height: 36px;" v-if="org.logo_url">-->
-                    <!--<span v-else>{{org.name}} </span>-->
-                    <span class="u-mt-small">
+      <c-hero>
+        <div class="c-login__main ">
+          <div class="c-login__container">
+            <div class="c-login">
+              <div class="c-login__form-header-wrapper">
+                <div class="c-login__form-header u-flex u-align-items-center u-justify-center">
+                  <!--<img :src="org.logo_url" style="height: 36px;" v-if="org.logo_url">-->
+                  <!--<span v-else>{{org.name}} </span>-->
+                  <span class="u-mt-small">
                 登录到您的账户
               </span>
+                </div>
+              </div>
+              <form @submit.prevent="handleSubmit">
+                <div class="c-card c-login__form">
+                  <div class="c-login__form-userdata">
+                    <label for="usernameOrEmail">用户名</label>
+                    <input id="usernameOrEmail"
+                           name="email"
+                           class="form-text-input"
+                           v-model="form.email" v-validate="'required|email'"
+                           :class="{'input': true, 'is-error': errors.has('user_login') }" type="text"
+                           placeholder="在这里输入用户名"
+                           :disabled="disabled">
+                    <div class="c-login__form-password">
+
+                      <label for="password">密码</label>
+                      <input type="password"
+                             autocapitalize="off"
+                             autocomplete="off"
+                             class="form-text-input "
+                             id="password"
+                             name="user_pass"
+                             v-model="form.password"
+                             v-validate="'required|min:6'"
+                             :class="{'is-error': errors.has('ACCOUNT_ERROR')}" :disabled="disabled">
+
+                      <form-input-validation
+                              :isError="errors.has('ACCOUNT_ERROR')"
+                              v-show="errors.has('ACCOUNT_ERROR')">
+                        {{ errors.first('ACCOUNT_ERROR') }}
+                      </form-input-validation>
+
+                    </div>
+                  </div>
+
+                  <div class="c-login__form-action">
+                    <button
+                            type="submit"
+                            class="c-button c-form-button is-primary"
+                            :class="disabled ? 'is-busy' : 'is-primary'"
+                            :disabled="disabled">
+                      登录
+                    </button>
                   </div>
                 </div>
-                <form @submit.prevent="handleSubmit">
-                  <div class="c-card c-login__form">
-                    <div class="c-login__form-userdata">
-                      <label for="usernameOrEmail">用户名</label>
-                      <input id="usernameOrEmail"
-                             name="user_login"
-                             class="form-text-input"
-                             v-model="form.user_login" v-validate="'required|alpha'"
-                             :class="{'input': true, 'is-error': errors.has('user_login') }" type="text"
-                             placeholder="在这里输入用户名"
-                             :disabled="disabled">
-                      <div class="c-login__form-password">
-
-                        <label for="password">密码</label>
-                        <input type="password"
-                               autocapitalize="off"
-                               autocomplete="off"
-                               class="form-text-input "
-                               id="password"
-                               name="user_pass"
-                               v-model="form.user_pass"
-                               v-validate="'required|min:6'"
-                               :class="{'is-error': errors.has('ACCOUNT_ERROR')}" :disabled="disabled">
-
-                        <form-input-validation
-                          :isError="errors.has('ACCOUNT_ERROR')"
-                          v-show="errors.has('ACCOUNT_ERROR')">
-                          {{ errors.first('ACCOUNT_ERROR') }}
-                        </form-input-validation>
-
-                      </div>
-                    </div>
-
-                    <div class="c-login__form-action">
-                      <button
-                        type="submit"
-                        class="c-button c-form-button is-primary"
-                        :class="disabled ? 'is-busy' : 'is-primary'"
-                        :disabled="disabled">
-                        登录
-                      </button>
-                    </div>
-                  </div>
-                  <div class="c-login__form-social">
-                    <div class="c-login__form-social-divider"><span>或</span></div>
-                    <div class="c-card">
-                      <div class="c-login__social">
-                        <div class="c-login__social-buttons">
-                          <div class="c-social-buttons__button-container">
-                            <button class="c-social-buttons__button c-button">
-                              <span class="c-social-buttons__service-name">使用微信登录</span></button>
-                          </div>
+                <div class="c-login__form-social">
+                  <div class="c-login__form-social-divider"><span>或</span></div>
+                  <div class="c-card">
+                    <div class="c-login__social">
+                      <div class="c-login__social-buttons">
+                        <div class="c-social-buttons__button-container">
+                          <button class="c-social-buttons__button c-button">
+                            <span class="c-social-buttons__service-name">使用微信登录</span></button>
                         </div>
                       </div>
                     </div>
                   </div>
-                </form>
-              </div>
+                </div>
+              </form>
             </div>
           </div>
-          <span class="c-hero__circle1"></span>
-          <span class="c-hero__circle2"></span>
-          <span class="c-hero__circle3"></span>
-          <span class="c-hero__circle4"></span>
-
-          <span class="c-hero__circle5 c-hero__circle--small"></span>
-          <span class="c-hero__circle6 c-hero__circle--small"></span>
-          <span class="c-hero__circle7 c-hero__circle--small"></span>
-          <span class="c-hero__circle8 c-hero__circle--small"></span>
         </div>
-
-      </div>
+      </c-hero>
 
       <!--
       <div class="c-login__links">
@@ -110,7 +98,7 @@
 
 <script>
   import FormInputValidation from '~/components/forms/form-input-validation'
-
+  import CHero from '~/components/hero'
   export default {
     layout: 'logged-out',
     // middleware: ['auth'],
@@ -121,8 +109,8 @@
         },
         loginHasError: false,
         form: {
-          user_login: '',
-          user_pass: ''
+          email: '',
+          password: ''
         },
         errmsg: '',
         disabled: false
@@ -131,6 +119,7 @@
     mounted () {
     },
     components: {
+      CHero,
       FormInputValidation
     },
     computed: {

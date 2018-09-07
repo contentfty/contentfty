@@ -7,8 +7,9 @@ export default function ({ $axios, app, redirect }) {
   // axios.onRequest(() => {
   //   config.headers['Authorization'] = 'Bearer xxx'
   // })
+
   $axios.onRequest(config => {
-    // console.log(app.$auth.token)
+    console.log(app.$auth.token)
     config.headers['Authorization'] = `Bearer ${app.$auth.token}`
     console.log('Making request to ' + config.url)
   })

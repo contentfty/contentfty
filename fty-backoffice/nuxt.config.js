@@ -1,3 +1,4 @@
+const apiConfig = require('./api.config')
 const nodeExternals = require('webpack-node-externals')
 const webpack = require('webpack')
 
@@ -24,6 +25,18 @@ module.exports = {
   */
   // loading: { color: '#3B8070' },
   loading: '~/components/loading',
+
+  router: {
+    middleware: ['auth'],
+    linkActiveClass: 'selected is-active',
+    linkExactActiveClass: 'is-selected',
+    scrollBehavior (to, from, savedPosition) {
+      return {
+        x: 0,
+        y: 0
+      }
+    }
+  },
   /*
   ** Build configuration
   */
@@ -61,11 +74,28 @@ module.exports = {
   },
   modules: [
     '@nuxtjs/axios',
+    '@nuxtjs/auth',
     '@nuxtjs/toast',
   ],
+  axios: {
+    baseURL: apiConfig.baseURL
+  },
+  auth: {
+    strategies: {
+      local: {
+        endpoints: {
+          login: { url: '/api/auth/login', method: 'post', propertyName: 'data.token' },
+          // logout: { url: '/api/auth/logout', method: 'post' },
+          // user: { url: '/api/auth/user', method: 'get', propertyName: 'user' }
+        },
+        // tokenRequired: true,
+        // tokenType: 'bearer',
+      }
+    }
+  },
   plugins: [
     {src: '~plugins/vee-validate.js'},
-    {src: '~plugins/axios.js'},
+    // {src: '~plugins/axios.js'},
     {src: '~plugins/svgicon', ssr: false}
   ],
   css: [
