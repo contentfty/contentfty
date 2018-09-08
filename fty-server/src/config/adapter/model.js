@@ -47,9 +47,22 @@ module.exports = {
     prefix: 'cf_',
     charset: 'UTF8MB4_GENERAL_CI',
     host: isDev ? '127.0.0.1' : '114.55.230.6',
-    port: isDev ? '3306' : '3377',
+    port: isDev ? '3318' : '3377',
     user: 'root',
-    password: '12345678',
+    password: 'ub08JASJQy9s',
     dateStrings: true
   }
 }
+//
+// mysql: {
+//   logConnect: isDev,
+//     handle: mysql,
+//     database: 'cf',
+//     prefix: 'cf_',
+//     charset: 'UTF8MB4_GENERAL_CI',
+//     host: isDev ? '127.0.0.1' : '114.55.230.6',
+//     port: isDev ? '3318' : '3377',
+//     user: 'root',
+//     password: 'ub08JASJQy9s',
+//     dateStrings: true
+// }

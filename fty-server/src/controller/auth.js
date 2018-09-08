@@ -15,16 +15,17 @@ module.exports = class extends BaseRest {
     const userInfo = await userModel.where({email: userLogin}).find();
     // 验证用户是否存在
     if (think.isEmpty(userInfo)) {
-      return this.fail(404, 'ACCOUNT_NOT_FOUND');
+      throw new Error('ACCOUNT_NOT_FOUND')
+
     }
     // 帐号是否被禁用
     if (userInfo.deleted === 1) {
-      return this.fail('ACCOUNT_FORBIDDEN');
+      throw new Error('ACCOUNT_FORBIDDEN');
     }
 
     // 校验密码
     if (!userModel.checkPassword(userInfo.password, data.password)) {
-      return this.fail(400, 'ACCOUNT_PASSWORD_ERROR');
+      throw new Error('ACCOUNT_PASSWORD_ERROR');
     }
     const token = await think.service('authService').generateToken({
       id: userInfo.id

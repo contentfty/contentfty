@@ -1,14 +1,42 @@
 /* eslint-disable prefer-reflect,prefer-rest-params */
 const {runHttpQuery} = require('apollo-server-core');
 const {buildSchema} = require('../apollo/schema')
+const {makeExecutableSchema} = require('graphql-tools');
+
+// const {typeDef: Auth, resolvers: authResolvers} = require('./auth')
 
 module.exports = (options = {}) => {
 
   return async ctx => {
     const spaceId = ctx.request.header['x-space-id']
     const schema = await buildSchema(spaceId)
+
+    // module.exports = makeExecutableSchema({
+    //   typeDefs: [
+    //     Scalar,
+    //     Query,
+    //     Field,
+    //     ContentType,
+    //     Org,
+    //     Auth,
+    //     User,
+    //     Space,
+    //     Entry
+    //   ],
+    //   resolvers: think._.merge(
+    //     resolvers,
+    //     fieldResolvers,
+    //     contentTypeResolvers,
+    //     orgResolvers,
+    //     authResolvers,
+    //     userResolvers,
+    //     spaceResolvers,
+    //     entryResolvers
+    //   )
+    // });
+
     options.schema = schema
-    
+
     // 上下文配置
     options.context = think.extend(options.context, {
       user: ctx.state.user,

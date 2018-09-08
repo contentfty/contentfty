@@ -1,4 +1,4 @@
-const { isString, fromPairs } = require('lodash')
+const {isString, fromPairs} = require('lodash')
 
 const {
   GraphQLObjectType,
@@ -11,9 +11,9 @@ const {
 
 const GraphQLJSON = require('graphql-type-json')
 
-const { writeEntry } = require('./db/write')
-const { deleteEntry } = require('./db/delete')
-const { readModel, writeModel } = require('./db/model')
+const {writeEntry} = require('./db/write')
+const {deleteEntry} = require('./db/delete')
+const {readModel, writeModel} = require('./db/model')
 
 const LinkDataInputType = new GraphQLInputObjectType({
   name: 'LinkDataInput',
@@ -104,17 +104,24 @@ const buildInput = field => {
   }
   switch (field.type[0]) {
     case 'link':
-      return { type: LinkInputType }
+      return {type: LinkInputType}
     case 'links':
-      return { type: LinksInputType }
+      return {type: LinksInputType}
     case 'map':
-      return { type: MapInputType }
+      return {type: MapInputType}
     case 'json':
-      return { type: GraphQLJSON }
+      return {type: GraphQLJSON}
     default:
-      return { type: GraphQLString }
+      return {type: GraphQLString}
   }
 }
+const AuthUserInput = new GraphQLInputObjectType({
+  name: 'AuthUserInput',
+  fields: () => ({
+    email: {type: GraphQLString},
+    passsword: {type: GraphQLString}
+  })
+})
 
 const buildInputs = async function () {
   const InputType = {}
@@ -124,7 +131,7 @@ const buildInputs = async function () {
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
-          id: { type: GraphQLID }
+          id: {type: GraphQLID}
         }
         if (structure.type) {
           resultFields._value_ = buildInput(structure)
@@ -146,23 +153,77 @@ const buildDeleteObject = key =>
   new GraphQLObjectType({
     name: `_DeleteObject${key}_`,
     fields: {
-      code: { type: GraphQLInt },
-      message: { type: GraphQLString }
+      code: {type: GraphQLInt},
+      message: {type: GraphQLString}
     }
   })
+
+const tokenType = new GraphQLObjectType({
+  name: 'Token',
+  fields: {
+    token: {type: GraphQLString},
+  }
+});
 
 const buildMutation = async function (ObjectTypes) {
   const InputType = await buildInputs()
   const MutationObjects = {}
+
   const mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: () => {
+      MutationObjects.login = {
+        type: tokenType,
+        name: 'LoginMutation',
+        args: {
+          email: {
+            type: GraphQLString
+          },
+          password: {
+            type: GraphQLString
+          }
+        },
+        // args: {user: {type: AuthUserInput}},
+        fields: {
+          email: {
+            type: GraphQLString
+          },
+          password: {
+            type: GraphQLString
+          }
+        },
+        resolve: async (root, input, context) => {
+          // const data = params.user
+          const userLogin = input.email;
+
+          const userModel = think.model('users');
+          const userInfo = await userModel.where({email: userLogin}).find();
+          // 验证用户是否存在
+          if (think.isEmpty(userInfo)) {
+            throw new Error('ACCOUNT_NOT_FOUND')
+          }
+          // 帐号是否被禁用
+          if (userInfo.deleted === 1) {
+            throw new Error('ACCOUNT_FORBIDDEN');
+          }
+
+          // 校验密码
+          if (!userModel.checkPassword(userInfo.password, input.password)) {
+            throw new Error('ACCOUNT_PASSWORD_ERROR');
+          }
+          const token = await think.service('authService').generateToken({
+            id: userInfo.id
+          })
+          return token
+        }
+      }
+
       Object.keys(InputType).forEach(key => {
         const inputs = {}
-        inputs[key.toLowerCase()] = { type: InputType[key] }
+        inputs[key.toLowerCase()] = {type: InputType[key]}
         MutationObjects[`save${key}`] = {
           type: ObjectTypes[key],
-          args: { ...inputs },
+          args: {...inputs},
           resolve: async (root, params, context) => {
             try {
               if (key === 'Schema') {
@@ -173,20 +234,20 @@ const buildMutation = async function (ObjectTypes) {
               // return []
               return await writeEntry(key, params[key.toLowerCase()], context)
             } catch (error) {
-              throw error
+              throw erro
             }
           }
         }
 
         MutationObjects[`delete${key}`] = {
           type: buildDeleteObject(key),
-          args: { ...inputs },
+          args: {...inputs},
           resolve: async (root, params, context) => {
             try {
               if (key === 'Schema') {
                 return []
               }
-              return await deleteEntry(key, params[key.toLowerCase()],context)
+              return await deleteEntry(key, params[key.toLowerCase()], context)
             } catch (error) {
               throw error
             }
