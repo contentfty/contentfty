@@ -1,6 +1,6 @@
 /* eslint-disable no-undef,no-unused-expressions */
 const isDev = think.env === 'development';
-const nuxt = require('think-nuxt')
+const nuxt = require('./nuxt')
 
 module.exports = [
   {
