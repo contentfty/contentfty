@@ -70,8 +70,8 @@ const readEntry = async function ({ type, id, spaceId }) {
   }
   switch (type) {
     case 'User': {
-      const fieldModel = think.model('users');
-      const userData = await fieldModel.getById(id)
+      const userModel = think.model('users');
+      const userData = await userModel.getById(id)
       return userData
     }
     case 'EntryType': {
@@ -104,7 +104,7 @@ const entryTypes = async function (id, spaceId) {
     let page = 1;
 
     const entrytypesModel = await think.model('entrytypes', { spaceId: spaceId })
-    //获取内容类型json列表结构 
+    //获取内容类型json列表结构
     let data = await entrytypesModel.page(page, limit).countSelect();
 
     console.log(data)

@@ -14,16 +14,16 @@ let fields = [
 ]
 module.exports = class extends think.Model {
 
-  // get relation () {
-  //   return {
-  //     metas: {
-  //       type: think.Model.HAS_MANY,
-  //       model: 'usermeta',
-  //       fKey: 'userId',
-  //       field: "userId,metaKey,metaValue"
-  //     }
-  //   }
-  // }
+  get relation () {
+    return {
+      metas: {
+        type: think.Model.HAS_MANY,
+        model: 'usermeta',
+        fKey: 'userId',
+        field: "userId,metaKey,metaValue"
+      }
+    }
+  }
 
   /**
    * get password
@@ -97,8 +97,19 @@ module.exports = class extends think.Model {
     let user = await this.where({
       id: userId
     }).find()
-    const meta = await this.model('usermeta').where({userId: userId}).select()
-    user.metas = meta
+
+    _formatOneMeta(user)
+    console.log(user.orgs)
+    const orgList = await this.model('spaces').getByOrgs(user.orgs)
+    user.spaces = think._.groupBy(orgList, 'orgId')
+
+    // for (let org of orgList) {
+      // user.orgs.push({org.orgId})
+      // user.orgs = [[org.orgId]{`${org.orgId}`: think._.filter(orgList, {orgId: org.orgId}}])
+    // }
+    // console.log(user)
+    // console.log(spaces)
+
     return user
   }
 

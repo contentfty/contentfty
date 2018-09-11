@@ -156,13 +156,20 @@ global._formatOneMeta = (item) => {
   // for (const item of list) {
   // item = Object.assign({}, {meta: {}});
   item.meta = {}
+  item.orgs = []
+
   if (!think.isEmpty(item.metas) && item.metas.length > 0) {
     for (const meta of item.metas) {
-      if (meta.meta_key.includes('_liked_posts') && meta.meta_key.includes('picker_')) {
-        item.liked = JSON.parse(meta.meta_value)
+      if (meta.metaKey.includes('_capabilities') && meta.metaKey.includes('org_')) {
+        Object.assign(item, JSON.parse(meta.metaValue))
+        item.orgs.push(meta.metaKey.replace(/org_(.+?)_capabilities/, '$1'))
+
+      }
+      if (meta.metaKey.includes('_liked_posts') && meta.metaKey.includes('picker_')) {
+        item.liked = JSON.parse(meta.metaValue)
         // Object.assign(item, JSON.parse(meta.meta_value))
       }
-      item.meta[meta.meta_key] = JSON.parse(meta.meta_value)
+      item.meta[meta.metaKey] = JSON.parse(meta.metaValue)
     }
   }
   Reflect.deleteProperty(item, 'metas')
@@ -181,7 +188,7 @@ global._formatMeta = (list) => {
     item.meta = {};
     if (!Object.is(item.metas, undefined) && item.metas.length > 0) {
       for (const meta of item.metas) {
-        if (meta.meta_key.includes('_capabilities') && meta.meta_key.includes('picker_')) {
+        if (meta.meta_key.includes('_capabilities') && meta.meta_key.includes('org_')) {
           Object.assign(item, JSON.parse(meta.meta_value))
         }
         if (meta.meta_key.includes('_wechat') && meta.meta_key.includes('picker_')) {
