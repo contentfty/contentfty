@@ -1,65 +1,64 @@
 <template>
-  <section class="container">
-    <div>
-      <app-logo/>
-      <h1 class="title">
-        fty-backoffice
-      </h1>
-      <h2 class="subtitle">
-        Backoffice
-      </h2>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green">Documentation</a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey">GitHub</a>
-      </div>
-    </div>
-  </section>
+
 </template>
 
 <script>
-import AppLogo from '~/components/AppLogo.vue'
+  import auth from '~/utils/auth'
+  import { mapActions } from 'vuex'
 
-export default {
-  components: {
-    AppLogo
+  export default {
+    middleware: ['auth'],
+    created () {
+      const user = this.$store.state.auth.user
+      const rootSpace = user.spaces[user.orgs[0]][0].id
+      // console.log(user.spaces[user.orgs[0]][0].id)
+      // console.log(user.spaces[user.orgs[0]])
+      this.$axios.setHeader('x-space-id', rootSpace)
+      this.$router.push({
+        name: 'spaces-space',
+        params: {
+          space: rootSpace
+          // org: user.orgs[0]
+        }
+      })
+      // const isAuth = auth.isAuth()
+      // if (isAuth) {
+        // if you hit an unknown
+        // we have acceptedRoutes in ~/utils/acceptedRoutes
+        // this.getUser()
+        //   .then(({data: { user }}) => {
+        //     try {
+        //       this.$tipeAnalytics.identify(user.id, {
+        //         email: user.email,
+        //         firstName: user.firstName,
+        //         lastName: user.lastName,
+        //         createdAt: user.createdAt
+        //       }, {
+        //         Intercom: {
+        //           user_hash: user.intercomHash
+        //         }
+        //       })
+        //     } catch (e) {}
+        //     const rootOrg = user.org
+        //     const rootFolder = rootOrg.rootFolder
+        //     this.$router.push({name: 'org-folder-folder', params: {org: rootOrg.id, folder: rootFolder.id}})
+        //   })
+        //   .catch(async (e) => {
+        //     await this.$message({
+        //       title: 'Oh no',
+        //       message: 'We are having issues, hang tight, we are on it!',
+        //       center: true
+        //     })
+        //     auth.clearSession()
+        //     auth.login()
+        //   })
+      // }
+    },
+    methods: {
+      ...mapActions({
+        getUser: 'auth/user'
+      })
+    }
   }
-}
 </script>
-
-<style>
-.container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-.title {
-  font-family: "Quicksand", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* 1 */
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
-
-.links {
-  padding-top: 15px;
-}
-</style>
 

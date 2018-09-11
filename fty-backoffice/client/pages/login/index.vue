@@ -76,7 +76,6 @@
         </div>
       </c-hero>
 
-      <!--
       <div class="c-login__links">
         <a href="action=lostpassword" rel="external">忘记密码？</a>
         <a href="" rel="external" class="logged-out-form__back-link">
@@ -86,10 +85,9 @@
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
             </g>
           </svg>
-          返回 CaiXie.top
+          返回 contentfty.com
         </a>
       </div>
-      -->
     </main>
   </div>
 
@@ -101,7 +99,7 @@
   import CHero from '~/components/hero'
   export default {
     layout: 'logged-out',
-    // middleware: ['auth'],
+    middleware: ['auth'],
     data () {
       return {
         options: {
@@ -152,10 +150,13 @@
                 propertyName: 'data.token',
                 data: this.form
               }).then(async () => {
+                console.log('Successfully connected')
                 this.$toast.success('Successfully connected')
               }).catch(err => {
+                console.log(err)
                 this.errors.add('ACCOUNT_ERROR', '糟糕，验证失败！', 'server');
                 this.disabled = false
+
               })
             }
           })

@@ -11,12 +11,12 @@ module.exports = {
   head: {
     title: 'fty-backoffice',
     meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: 'Backoffice' }
+      {charset: 'utf-8'},
+      {name: 'viewport', content: 'width=device-width, initial-scale=1'},
+      {hid: 'description', name: 'description', content: 'Backoffice'}
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      {rel: 'icon', type: 'image/x-icon', href: '/favicon.ico'}
     ]
   },
   /*
@@ -43,7 +43,7 @@ module.exports = {
     /*
     ** Run ESLint on save
     */
-    extend (config, { isDev }) {
+    extend (config, {isDev}) {
       if (isDev && process.client) {
         config.module.rules.push({
           enforce: 'pre',
@@ -73,30 +73,45 @@ module.exports = {
   },
   modules: [
     '@nuxtjs/axios',
-    '@nuxtjs/apollo'
+    '@nuxtjs/auth',
+    '@nuxtjs/apollo',
     // '@nuxtjs/auth',
-    // '@nuxtjs/toast',
+    '@nuxtjs/toast',
   ],
   axios: {
     baseURL: apiConfig.baseURL
+  },
+  auth: {
+    watchLoggedIn: true,
+    redirect: {
+      login: '/login',
+      home: '/'
+    },
+    strategies: {
+      local: {
+        endpoints: {
+          user: {method: 'get', propertyName: 'data'}
+        }
+      }
+    }
   },
   // auth: {
   //   strategies: {
   //     local: {
   //       endpoints: {
   //         login: { url: '/api/auth/login', method: 'post', propertyName: 'data.token' },
-          // logout: { url: '/api/auth/logout', method: 'post' },
-          // user: { url: '/api/auth/user', method: 'get', propertyName: 'user' }
-        // },
-        // tokenRequired: true,
-        // tokenType: 'bearer',
-      // }
-    // }
+  // logout: { url: '/api/auth/logout', method: 'post' },
+  // user: { url: '/api/auth/user', method: 'get', propertyName: 'user' }
+  // },
+  // tokenRequired: true,
+  // tokenType: 'bearer',
+  // }
+  // }
   // },
   // Give apollo module options
   apollo: {
     // tokenName: 'yourApolloTokenName', // optional, default: apollo-token
-    tokenExpires: 10, // optional, default: 7
+    // tokenExpires: 10, // optional, default: 7
     includeNodeModules: true, // optional, default: false (this includes graphql-tag for node_modules folder)
     // authenticationType: 'Basic', // optional, default: 'Bearer'
     // optional
@@ -108,21 +123,22 @@ module.exports = {
       default: {
         // required
         httpEndpoint: 'http://localhost:5000',
+        connectToDevTools: true
         // optional
         // See https://www.apollographql.com/docs/link/links/http.html#options
-        httpLinkOptions: {
-          credentials: 'same-origin'
-        },
+        // httpLinkOptions: {
+        //   credentials: 'same-origin'
+        // },
         // You can use `wss` for secure connection (recommended in production)
         // Use `null` to disable subscriptions
         // wsEndpoint: 'ws://localhost:5000', // optional
         // LocalStorage token
-        tokenName: 'apollo-token', // optional
+        // tokenName: 'apollo-token', // optional
         // Enable Automatic Query persisting with Apollo Engine
-        persisting: false, // Optional
+        // persisting: false, // Optional
         // Use websockets for everything (no HTTP)
         // You need to pass a `wsEndpoint` for this to work
-        websocketsOnly: false // Optional
+        // websocketsOnly: false // Optional
       },
       // test: {
       //   httpEndpoint: 'http://localhost:5000',
@@ -133,13 +149,21 @@ module.exports = {
       // test2: '~/plugins/my-alternative-apollo-config.js'
     }
   },
+  /**
+   * Add element-ui in our app, see plugins/element-ui.js file
+   */
   plugins: [
     {src: '~plugins/vee-validate.js'},
     // {src: '~plugins/axios.js'},
-    {src: '~plugins/svgicon', ssr: false}
+    {src: '~plugins/svgicon', ssr: false},
+    '~plugins/element-ui'
   ],
+  /**
+   * Global CSS
+   */
   css: [
-    {src: '~assets/scss/main.scss', lang: 'scss'}
+    {src: '~assets/scss/main.scss', lang: 'scss'},
+    // 'element-ui/lib/theme-chalk/index.css'
   ]
 }
 

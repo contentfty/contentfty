@@ -1,7 +1,7 @@
 $sidebar-bg-color: #FAFAFA;
 //default color scheme
 :root {
-  --masterbar-color: #848f99;
+  --masterbar-color: $primary;
   --masterbar-background: $white;
   //background: -webkit-linear-gradient(left, #008ce3, #14aaf5 100%);
   //--masterbar-background: linear-gradient(to right, #008ce3, #14aaf5 100%);
