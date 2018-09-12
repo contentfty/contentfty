@@ -6404,7 +6404,7 @@ nunjucks@~3.0.0:
   optionalDependencies:
     chokidar "^1.6.0"
 
-"nuxt@npm:nuxt-edge@^2.0.0-25607354.1e02195":
+"nuxt@npm:nuxt-edge@^2.0.0-25609473.c77fa47":
   version "2.0.0-25609473.c77fa47"
   resolved "https://registry.yarnpkg.com/nuxt-edge/-/nuxt-edge-2.0.0-25609473.c77fa47.tgz#f1afd104a4190f0410dd55934b6fd725c6b63bcd"
   dependencies:

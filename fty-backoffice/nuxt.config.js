@@ -26,7 +26,7 @@ module.exports = {
   loading: '~/components/loading',
 
   router: {
-    // middleware: ['auth'],
+    middleware: ['auth', 'change-page-layout'],
     linkActiveClass: 'selected is-active',
     linkExactActiveClass: 'is-selected',
     scrollBehavior (to, from, savedPosition) {

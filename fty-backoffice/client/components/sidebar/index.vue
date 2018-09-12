@@ -4,8 +4,8 @@
         <ul class="c-sidebar has-regions">
             <div class="c-sidebar__region">
                 <div class="c-card c-current-app">
-        <span class="c-current-app__switch-apps" @click="switchApps">
-          <button type="c-button" class="c-button is-borderless">
+        <span class="c-current-app__switch-apps" @click="switchSpaces">
+          <button type="button" class="c-button is-borderless">
 
               <svg class="gridicon gridicons-chevron-left u-ml-small" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>keyboard-arrow-left</title><path d="M22.5,10.5H7.027a.25.25,0,0,1-.25-.25V7.222A1,1,0,0,0,5.07,6.515L.292,11.293a1,1,0,0,0,0,1.414L5.07,17.485a1,1,0,0,0,.707.293,1,1,0,0,0,1-1V13.75a.25.25,0,0,1,.25-.25H22.5a1.5,1.5,0,0,0,0-3Z"></path></svg>
             <!--<svg-->
@@ -163,12 +163,13 @@
       }
     },
     methods: {
-      switchApps (event) {
+      switchSpaces (event) {
         event.preventDefault();
         event.stopPropagation();
-        // this.$store.dispatch('loadOrgApps')
-        // this.$store.commit('options/SET_LAYOUT_FOCUS', 'apps')
-//        this.props.setLayoutFocus( 'sites' );
+        // this.$store.dispatch('loadOrgSpaces')
+        this.$store.commit('options/SET_LAYOUT_FOCUS', 'apps')
+       // this.props.setLayoutFocus( 'sites' );
+
       }
     }
   }

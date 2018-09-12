@@ -7,7 +7,7 @@
             <!--<span class="c-count">{{ org.apps.length }}</span>-->
             <div class="c-app__info">
               <span class="c-app__title">
-                所有应用
+                创建新空间
               </span>
               <!--<div class="c-all-apps-icon" :class="`has-${org.apps.length}-icons`">-->
                 <!--<div class="c-app-icon is-blank"-->
