@@ -92,26 +92,6 @@ const buildSchemaInput = function () {
     })
   })
 }
-// const ObjectTypes = fromPairs(
-//   model.map(structure => {
-//     return [
-//       structure.name,
-//       new GraphQLObjectType({
-//         name: structure.name,
-//         // interfaces: [EntryInterface],
-//         fields: () => ({
-//           id: {type: GraphQLID},
-//           // _type_: { type: GraphQLString },
-//           // _tree_: {
-//           //   type: GraphQLString,
-//           //   resolve: root => inspect(root, modelTypes)
-//           // },
-//           ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
-//         })
-//       })
-//     ]
-//   })
-// )
 const buildInput = field => {
   const fieldType = field.type;
   switch (fieldType) {
@@ -155,24 +135,20 @@ const buildInputs = async function () {
   const InputType = {}
   const model = await readModel()
   for (const structure of model) {
-    // console.log(JSON.stringify(structure) + '---type')
     InputType[structure.name] = new GraphQLInputObjectType({
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
           id: {type: GraphQLID}
         }
-        // console.log(JSON.stringify(structure))
-        // console.log(structure.type + 'x-x-x-x-x-x')
-        if (structure.type) {
-          // console.log('type is has')
-          resultFields._value_ = buildInput(structure)
-        } else {
-          Object.assign(
-            resultFields,
-            fromPairs(structure.fields.map(field => [field.name, buildInput(field)]))
-          )
-        }
+        // if (structure.type) {
+        //   resultFields._value_ = buildInput(structure)
+        // } else {
+        Object.assign(
+          resultFields,
+          fromPairs(structure.fields.map(field => [field.name, buildInput(field)]))
+        )
+        // }
         return resultFields
       }
     })

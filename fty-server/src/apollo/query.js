@@ -9,7 +9,8 @@ const {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLFloat,
-  GraphQLNonNull
+  GraphQLNonNull,
+  GraphQLInputObjectType
 } = require('graphql')
 const GraphQLJSON = require('graphql-type-json')
 const {readModel, getTypesNames} = require('./db/model')
@@ -99,6 +100,7 @@ const buildObjects = async function (spaceId) {
       ]
     })
   )
+  // 处理返回值
   const queryCollection = fromPairs(
     model.map(structure => {
       return [
@@ -110,11 +112,6 @@ const buildObjects = async function (spaceId) {
             skip: {type: new GraphQLNonNull(GraphQLInt)},
             limit: {type: new GraphQLNonNull(GraphQLInt)},
             total: {type: new GraphQLNonNull(GraphQLInt)},
-            // _type_: { type: GraphQLString },
-            // _tree_: {
-            //   type: GraphQLString,
-            //   resolve: root => inspect(root, modelTypes)
-            // },
             ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
           })
         })
@@ -126,15 +123,60 @@ const buildObjects = async function (spaceId) {
   ObjectTypes.Schema = buildSchemaObject()
   return ObjectTypes
 }
+const buildFilterInput = field => {
+  const fieldType = field.type;
+  switch (fieldType) {
+    case 'Symbol':
+    case 'Text':
+    case 'Date':
+      return {
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+      }
+    case 'Boolean':
+      return {
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+      }
+    default:
+      return {
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+      }
+  }
+}
 
-const buildQuery = function (ObjectTypes) {
+const buildFilters = async function () {
+  const InputType = {}
+  const model = await readModel()
+  for (const structure of model) {
+    InputType[structure.name] = new GraphQLInputObjectType({
+      name: `${structure.name}Filter`,
+      fields: () => {
+        const resultFields = {
+          id: {type: GraphQLID}
+        }
+        Object.assign(
+          resultFields,
+          fromPairs(structure.fields.map(field => [field.name, buildFilterInput(field)]))
+        )
+        return resultFields
+      }
+    })
+  }
+  return InputType
+}
+
+const buildQuery = async function (ObjectTypes) {
+  // 构建全部查询条件输入类型
+  const filterType = await buildFilters()
+
   const query = new GraphQLObjectType({
     name: 'Query',
     fields: () => {
       return fromPairs(
         map(ObjectTypes, (value, key) => {
-          let singleQuery = []
-          let collectionQuery = []
+            let singleQuery = []
+            let collectionQuery = []
+            // 获取原始定义的 Key
+            const originalKey = think._.upperFirst(think._.kebabCase(key).split('-')[0])
             if (think._.includes(key, 'Collection')) {
               collectionQuery = [
                 key,
@@ -142,7 +184,10 @@ const buildQuery = function (ObjectTypes) {
                   type: new GraphQLList(value),
                   args: {
                     skip: {type: GraphQLInt},
-                    limit: {type: GraphQLInt}
+                    limit: {type: GraphQLInt},
+                    where: {
+                      type: filterType[originalKey]
+                    }
                   },
                   resolve: (root, {id, spaceId}) => read(key, id, spaceId)
                 }
