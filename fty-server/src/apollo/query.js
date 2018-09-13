@@ -1,4 +1,4 @@
-const {map, fromPairs} = require('lodash')
+const {map, fromPairs, concat} = require('lodash')
 const {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -15,17 +15,6 @@ const GraphQLJSON = require('graphql-type-json')
 const {readModel, getTypesNames} = require('./db/model')
 const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
 const {entryTypes} = require('./db/read');
-
-
-// const RichTextType = new GraphQLScalarType({
-//   name: 'RichText',
-//   serialize: value => value
-// })
-//
-// const ImageType = new GraphQLScalarType({
-//   name: 'Image',
-//   serialize: value => value
-// })
 
 const buildSchemaObject = function () {
   return new GraphQLObjectType({
@@ -60,10 +49,10 @@ const buildObjects = async function (spaceId) {
 
   const buildField = field => {
     const fieldType = field.type;
-    console.log(field)
     let type
     switch (fieldType) {
       case 'Symbol':
+      case 'Text':
       case 'Date':
         return {
           type: GraphQLString
@@ -89,33 +78,13 @@ const buildObjects = async function (spaceId) {
           resolve: (root) => readChildren(field.items.linkType, root.id, spaceId)
         }
       }
-      // case 'links':
-      //   type =
-      //     field.type[1] === '*'
-      //       ? new GraphQLList(EntryInterface)
-      //       : new GraphQLList(ObjectTypes[field.type[1]]);
-      //   return {
-      //     type,
-      //     resolve: root => readChildren(root[field.name], modelTypes)
-      //   };
-      // case 'map':
-      //   return {
-      //     type: new GraphQLList(KeyValuePair),
-      //     resolve: root => readMap(root[field.name], modelTypes)
-      //   };
-      // case 'json':
-      //   return {type: GraphQLJSON};
-      // case 'richtext':
-      //   return {type: RichTextType};
-      // case 'image':
-      //   return {type: ImageType};
       default:
         return {
           type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
         }
     }
   }
-  const ObjectTypes = fromPairs(
+  const queryTypes = fromPairs(
     model.map(structure => {
       return [
         structure.name,
@@ -124,6 +93,23 @@ const buildObjects = async function (spaceId) {
           // interfaces: [EntryInterface],
           fields: () => ({
             id: {type: GraphQLID},
+            ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
+          })
+        })
+      ]
+    })
+  )
+  const queryCollection = fromPairs(
+    model.map(structure => {
+      return [
+        structure.name + 'Collection',
+        new GraphQLObjectType({
+          name: structure.name + 'Collection',
+          // interfaces: [EntryInterface],
+          fields: () => ({
+            skip: {type: new GraphQLNonNull(GraphQLInt)},
+            limit: {type: new GraphQLNonNull(GraphQLInt)},
+            total: {type: new GraphQLNonNull(GraphQLInt)},
             // _type_: { type: GraphQLString },
             // _tree_: {
             //   type: GraphQLString,
@@ -135,6 +121,8 @@ const buildObjects = async function (spaceId) {
       ]
     })
   )
+  const ObjectTypes = think._.assign(queryTypes, queryCollection)
+
   ObjectTypes.Schema = buildSchemaObject()
   return ObjectTypes
 }
@@ -142,17 +130,45 @@ const buildObjects = async function (spaceId) {
 const buildQuery = function (ObjectTypes) {
   const query = new GraphQLObjectType({
     name: 'Query',
-    fields: () =>
-      fromPairs(
-        map(ObjectTypes, (value, key) => [
-          key,
-          {
-            type: new GraphQLList(value),
-            args: {id: {type: GraphQLID}, spaceId: {type: GraphQLID}},
-            resolve: (root, {id, spaceId}) => read(key, id, spaceId)
+    fields: () => {
+      return fromPairs(
+        map(ObjectTypes, (value, key) => {
+          let singleQuery = []
+          let collectionQuery = []
+            if (think._.includes(key, 'Collection')) {
+              collectionQuery = [
+                key,
+                {
+                  type: new GraphQLList(value),
+                  args: {
+                    skip: {type: GraphQLInt},
+                    limit: {type: GraphQLInt}
+                  },
+                  resolve: (root, {id, spaceId}) => read(key, id, spaceId)
+                }
+              ]
+            } else {
+              singleQuery = [
+                key,
+                {
+                  type: new GraphQLList(value),
+                  args: {
+                    id: {
+                      type: GraphQLID
+                    },
+                    spaceId: {
+                      type: GraphQLID
+                    }
+                  },
+                  resolve: (root, {id, spaceId}) => read(key, id, spaceId)
+                }
+              ]
+            }
+            return think._.concat(singleQuery, collectionQuery)
           }
-        ])
+        )
       )
+    }
   })
   return query
 }

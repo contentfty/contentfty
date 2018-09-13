@@ -31,38 +31,32 @@ const LinkDataInputType = new GraphQLInputObjectType({
 const LinkInputType = new GraphQLInputObjectType({
   name: 'LinkInput',
   fields: () => ({
-    _role_: {
-      type: GraphQLString
-    },
     link: {
       type: LinkDataInputType
     }
   })
 })
 
-const LinksInputType = new GraphQLInputObjectType({
-  name: 'LinkInput',
+const ArrayInputType = new GraphQLInputObjectType({
+  name: 'ArrayInput',
   fields: () => ({
-    _role_: {
-      type: GraphQLString
-    },
-    links: {
+    array: {
       type: new GraphQLList(LinkDataInputType)
     }
   })
 })
 
-const MapInputType = new GraphQLInputObjectType({
-  name: 'MapInput',
-  fields: () => ({
-    _role_: {
-      type: GraphQLString
-    },
-    map: {
-      type: GraphQLJSON
-    }
-  })
-})
+// const MapInputType = new GraphQLInputObjectType({
+//   name: 'MapInput',
+//   fields: () => ({
+//     _role_: {
+//       type: GraphQLString
+//     },
+//     map: {
+//       type: GraphQLJSON
+//     }
+//   })
+// })
 
 const FieldType = new GraphQLInputObjectType({
   name: 'FieldType',
@@ -98,29 +92,31 @@ const buildSchemaInput = function () {
     })
   })
 }
-
-// const buildInput = field => {
-//   if (isString(field.type)) {
-//     field.type = [field.type]
-//   }
-//   switch (field.type) {
-//     case 'link':
-//       return {type: LinkInputType}
-//     case 'links':
-//       return {type: LinksInputType}
-//     case 'map':
-//       return {type: MapInputType}
-//     case 'json':
-//       return {type: GraphQLJSON}
-//     default:
-//       return {type: GraphQLString}
-//   }
-// }
+// const ObjectTypes = fromPairs(
+//   model.map(structure => {
+//     return [
+//       structure.name,
+//       new GraphQLObjectType({
+//         name: structure.name,
+//         // interfaces: [EntryInterface],
+//         fields: () => ({
+//           id: {type: GraphQLID},
+//           // _type_: { type: GraphQLString },
+//           // _tree_: {
+//           //   type: GraphQLString,
+//           //   resolve: root => inspect(root, modelTypes)
+//           // },
+//           ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
+//         })
+//       })
+//     ]
+//   })
+// )
 const buildInput = field => {
   const fieldType = field.type;
-  // let type
   switch (fieldType) {
     case 'Symbol':
+    case 'Text':
     case 'Date':
       return {
         type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
@@ -129,40 +125,17 @@ const buildInput = field => {
       return {
         type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
       }
-    case 'link':
-      return {type: LinkInputType}
-//     case 'links':
-//       return {type: LinksInputType}
-    case 'links': {
-      // if (field.items.type === 'Link') {
-      // [Field]
-      // type =
-      // type = new GraphQLList(ObjectTypes[field.items.linkType])
-      // }
+    case 'Link':
       return {
-        type: LinksInputType
+        type: field.required ? new GraphQLNonNull(LinkInputType) : LinkInputType
+
+      }
+
+    case 'Array': {
+      return {
+        type: field.required ? new GraphQLNonNull(new GraphQLList(LinkInputType)) : new GraphQLList(LinkInputType)
       }
     }
-    // case 'links':
-    //   type =
-    //     field.type[1] === '*'
-    //       ? new GraphQLList(EntryInterface)
-    //       : new GraphQLList(ObjectTypes[field.type[1]]);
-    //   return {
-    //     type,
-    //     resolve: root => readChildren(root[field.name], modelTypes)
-    //   };
-    // case 'map':
-    //   return {
-    //     type: new GraphQLList(KeyValuePair),
-    //     resolve: root => readMap(root[field.name], modelTypes)
-    //   };
-    // case 'json':
-    //   return {type: GraphQLJSON};
-    // case 'richtext':
-    //   return {type: RichTextType};
-    // case 'image':
-    //   return {type: ImageType};
     default:
       return {
         type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
@@ -182,13 +155,17 @@ const buildInputs = async function () {
   const InputType = {}
   const model = await readModel()
   for (const structure of model) {
+    // console.log(JSON.stringify(structure) + '---type')
     InputType[structure.name] = new GraphQLInputObjectType({
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
           id: {type: GraphQLID}
         }
+        // console.log(JSON.stringify(structure))
+        // console.log(structure.type + 'x-x-x-x-x-x')
         if (structure.type) {
+          // console.log('type is has')
           resultFields._value_ = buildInput(structure)
         } else {
           Object.assign(

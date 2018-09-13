@@ -1,7 +1,37 @@
 [
   {
+    "name": "Sys",
+    "fields": [
+      {
+        "name": "id",
+        "type": "Symbol",
+        "required": true,
+        "validations": []
+      },
+      {
+        "name": "spaceId",
+        "type": "Symbol",
+        "required": false
+      },
+      {
+        "name": "environmentId",
+        "type": "Symbol",
+        "required": false
+      }
+    ]
+  },
+  {
     "name": "User",
     "fields": [
+      {
+        "name": "sys",
+        "type": "Link",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false,
+        "linkType": "Sys"
+      },
       {
         "name": "orgId",
         "apiName": "orgId",
