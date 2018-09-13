@@ -6,7 +6,8 @@ const {
   GraphQLID,
   GraphQLList,
   GraphQLString,
-  GraphQLInt
+  GraphQLInt,
+  GraphQLNonNull
 } = require('graphql')
 
 const GraphQLJSON = require('graphql-type-json')
@@ -98,23 +99,77 @@ const buildSchemaInput = function () {
   })
 }
 
+// const buildInput = field => {
+//   if (isString(field.type)) {
+//     field.type = [field.type]
+//   }
+//   switch (field.type) {
+//     case 'link':
+//       return {type: LinkInputType}
+//     case 'links':
+//       return {type: LinksInputType}
+//     case 'map':
+//       return {type: MapInputType}
+//     case 'json':
+//       return {type: GraphQLJSON}
+//     default:
+//       return {type: GraphQLString}
+//   }
+// }
 const buildInput = field => {
-  if (isString(field.type)) {
-    field.type = [field.type]
-  }
-  switch (field.type[0]) {
+  const fieldType = field.type;
+  // let type
+  switch (fieldType) {
+    case 'Symbol':
+    case 'Date':
+      return {
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+      }
+    case 'Boolean':
+      return {
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+      }
     case 'link':
       return {type: LinkInputType}
-    case 'links':
-      return {type: LinksInputType}
-    case 'map':
-      return {type: MapInputType}
-    case 'json':
-      return {type: GraphQLJSON}
+//     case 'links':
+//       return {type: LinksInputType}
+    case 'links': {
+      // if (field.items.type === 'Link') {
+      // [Field]
+      // type =
+      // type = new GraphQLList(ObjectTypes[field.items.linkType])
+      // }
+      return {
+        type: LinksInputType
+      }
+    }
+    // case 'links':
+    //   type =
+    //     field.type[1] === '*'
+    //       ? new GraphQLList(EntryInterface)
+    //       : new GraphQLList(ObjectTypes[field.type[1]]);
+    //   return {
+    //     type,
+    //     resolve: root => readChildren(root[field.name], modelTypes)
+    //   };
+    // case 'map':
+    //   return {
+    //     type: new GraphQLList(KeyValuePair),
+    //     resolve: root => readMap(root[field.name], modelTypes)
+    //   };
+    // case 'json':
+    //   return {type: GraphQLJSON};
+    // case 'richtext':
+    //   return {type: RichTextType};
+    // case 'image':
+    //   return {type: ImageType};
     default:
-      return {type: GraphQLString}
+      return {
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+      }
   }
 }
+
 const AuthUserInput = new GraphQLInputObjectType({
   name: 'AuthUserInput',
   fields: () => ({
@@ -234,7 +289,7 @@ const buildMutation = async function (ObjectTypes) {
               // return []
               return await writeEntry(key, params[key.toLowerCase()], context)
             } catch (error) {
-              throw erro
+              throw error
             }
           }
         }

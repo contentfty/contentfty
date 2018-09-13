@@ -245,7 +245,7 @@ module.exports = class extends think.Service {
         throw new Error('Organization does not exists!')
       }
 
-      // 注册元素 
+      // 注册元素
       const spaceId = await this.regElement(ElementType.space)
       await spaceModel.add({
         id: spaceId,
@@ -336,19 +336,33 @@ module.exports = class extends think.Service {
    * @returns {Promise<*>}
    */
   async saveUser(userInput) {
+    const elementsModel = think.model('elements')
+    const userModel = think.model('users')
+    const orgModel = think.model('orgs')
+
     if (think.isEmpty(userInput.id)) {  // 创建新用户
+      const userId = Generate.id()
+      let orgId = Generate.id()
+      // 1 验证组织
+      if (!think.isEmpty(userInput.orgId)){
+        // check org
+        const hasOrganization = await orgModel.check(userInput.orgId)
+        if (hasOrganization) {
+        orgId = userInput.orgId
+        } else {
+          throw new Error('Organization id does not exists!')
+        }
+      }
+
       /*
         1. 注册进 elements (添加user类型，添加org类型)
         2. add user
         3. add org
         4. add usermeta 关联组织用户
       */
-      const userId = Generate.id()
-      const orgId = Generate.id()
 
-      const elementsModel = think.model('elements')
-      const userModel = think.model('users')
-      const orgModel = think.model('orgs')
+
+
 
       const insertIds = await elementsModel.addMany([
         { id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow() },
@@ -501,9 +515,9 @@ module.exports = class extends think.Service {
 
   /**
    * 保存内容条目 (创建内容条目 and 更新内容条目)
-   * @param {*} entryInput 
-   * @param {*} user 
-   * @param {*} spaceId 
+   * @param {*} entryInput
+   * @param {*} user
+   * @param {*} spaceId
    */
   async saveEntry(entryInput, user, spaceId) {
     if (think.isEmpty(entryInput.id)) {
@@ -560,7 +574,7 @@ module.exports = class extends think.Service {
       }, { id: id })
 
       return { id: id }
-    } else {  // todo 
+    } else {  // todo
       const entryModel = await think.model('entries', { spaceId: spaceId })
       const entryExists = await entryModel.where({ id: entryInput.id }).find()
       if (think.isEmpty(entryExists)) {
@@ -591,7 +605,7 @@ module.exports = class extends think.Service {
 
   /**
    * 删除用户
-   * @param {*} userInput 
+   * @param {*} userInput
    */
   async deleteUser(userInput) {
     if (think.isEmpty(userInput.id)) {
@@ -614,7 +628,7 @@ module.exports = class extends think.Service {
 
   /**
    * 删除空间
-   * @param {*} spaceInput 
+   * @param {*} spaceInput
    */
   async deleteSpace(spaceInput) {
     const spaceId = spaceInput.id
@@ -640,8 +654,8 @@ module.exports = class extends think.Service {
 
   /**
    * 删除内容类型
-   * @param {*} entrytypeInput 
-   * @param {*} spaceId 
+   * @param {*} entrytypeInput
+   * @param {*} spaceId
    */
   async deleteEntryType(entrytypeInput, spaceId) {
     /*
@@ -692,8 +706,8 @@ module.exports = class extends think.Service {
 
   /**
    * 删除字段
-   * @param {*} fieldInput 
-   * @param {*} spaceId 
+   * @param {*} fieldInput
+   * @param {*} spaceId
    */
   async deleteField(fieldInput, user, spaceId) {
     /*
@@ -778,8 +792,8 @@ module.exports = class extends think.Service {
 
   /**
    * 删除条目内容
-   * @param {*} entryInput 
-   * @param {*} spaceId 
+   * @param {*} entryInput
+   * @param {*} spaceId
    */
   async deleteEntry(entryInput, spaceId) {
     if (think.isEmpty(entryInput.id)) {

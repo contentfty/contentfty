@@ -3,6 +3,16 @@
     "name": "User",
     "fields": [
       {
+        "name": "orgId",
+        "apiName": "orgId",
+        "title": "所属组织",
+        "type": "Symbol",
+        "localized": false,
+        "required": true,
+        "validations": [],
+        "disabled": false
+      },
+      {
         "name": "login",
         "apiName": "login",
         "title": "登录账号",

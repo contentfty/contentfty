@@ -14,7 +14,13 @@ module.exports = class extends think.Model {
   //     }
   //   };
   // }
-
+  async check(orgId) {
+    // TODO: 待缓存处理
+    const organization = this.where({
+      id: orgId
+    }).find()
+    return think.isEmpty(organization)
+  }
   async get () {
     const orgs = await this.list();
     return orgs
