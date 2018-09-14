@@ -5,11 +5,14 @@ const { isObject, isArray, toPairs } = require('lodash');
 const { readType, readEntry } = require('./db/read');
 const { inspectEntry, graphqlQuerySerialize } = require('./db/inspect');
 
-const read = function (type, id = null, spaceId = null) {
+const read = async function (type, id = null, spaceId = null, skip, limit, where) {
   // if ID Query single object els All
-  return id === null ? readType({ type, spaceId }) : [readEntry({ type, id, spaceId })];
+  return id === null ? await readType({ type, spaceId, skip, limit, where }) : [await readEntry({ type, id, spaceId })];
 }
 
+// const readCollection = function (type, spaceId, skip, limit) {
+//   return readType({ type, spaceId, skip, limit })
+// }
 const inspect = async function (root, modelTypes) {
   const inspection = await inspectEntry(root._type_, root._id_, modelTypes);
   return graphqlQuerySerialize(inspection);

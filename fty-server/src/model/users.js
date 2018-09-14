@@ -99,9 +99,10 @@ module.exports = class extends think.Model {
     }).find()
 
     _formatOneMeta(user)
-    console.log(user.orgs)
-    const orgList = await this.model('spaces').getByOrgs(user.orgs)
-    user.spaces = think._.groupBy(orgList, 'orgId')
+    if (user.orgs.length > 0) {
+      const orgList = await this.model('spaces').getByOrgs(user.orgs)
+      user.spaces = think._.groupBy(orgList, 'orgId')
+    }
 
     // for (let org of orgList) {
       // user.orgs.push({org.orgId})

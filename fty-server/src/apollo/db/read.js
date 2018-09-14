@@ -4,12 +4,31 @@
  * 按类型查询出内容列表
  * @returns {Promise<Array>}
  */
-const readType = async function ({ type, spaceId }) {
+const readType = async function ({ type, spaceId, skip, limit, where }) {
   switch (type) {
     case 'User': {
+      console.log(where)
       const fieldModel = think.model('users');
-      const userData = await fieldModel.select()
+      const userData = await fieldModel.page(1, limit).countSelect()
+
+      console.log(userData)
       return userData
+      // return {
+      //   total: userData.count,
+      //   skip: userData.currentPage,
+      //   limit: userData.pageSize,
+      //   data: userData.data
+      // }
+    }
+    case 'UserCollection': {
+      const fieldModel = think.model('users');
+      const userData = await fieldModel.page(1, limit).countSelect()
+      return {
+        total: userData.count,
+        skip: userData.currentPage,
+        limit: userData.pageSize,
+        data: userData.data
+      }
     }
     case 'Entry': {
       return await think.model('entries', { spaceId: spaceId }).select()
@@ -48,9 +67,9 @@ const readType = async function ({ type, spaceId }) {
       for (let obj of entryList) {
         obj.fields = JSON.parse(obj.fields)
       }
-      console.log(entryList)
+      // console.log(entryList)
       const fields = think._.map(entryList, 'fields')
-      console.log(fields)
+      // console.log(fields)
       return fields
     }
   }

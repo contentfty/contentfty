@@ -108,12 +108,23 @@ const buildObjects = async function (spaceId) {
         new GraphQLObjectType({
           name: structure.name + 'Collection',
           // interfaces: [EntryInterface],
-          fields: () => ({
-            skip: {type: new GraphQLNonNull(GraphQLInt)},
-            limit: {type: new GraphQLNonNull(GraphQLInt)},
-            total: {type: new GraphQLNonNull(GraphQLInt)},
-            ...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))
-          })
+          fields: () => {
+            return {
+              skip: {type: new GraphQLNonNull(GraphQLInt)},
+              limit: {type: new GraphQLNonNull(GraphQLInt)},
+              total: {type: new GraphQLNonNull(GraphQLInt)},
+              data: {
+                type: new GraphQLList(new GraphQLObjectType({
+                  name: structure.name + 'Data',
+                  fields: () => {
+                    return {...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))}
+                  }
+                }))
+              }
+              // data: new GraphQLList(fromPairs(structure.fields.map(field => [field.name, buildField(field)])))
+              // data: {...fromPairs(structure.fields.map(field => [field.name, buildField(field)]))}
+            }
+          }
         })
       ]
     })
@@ -130,15 +141,15 @@ const buildFilterInput = field => {
     case 'Text':
     case 'Date':
       return {
-        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+        type: GraphQLString
       }
     case 'Boolean':
       return {
-        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+        type: GraphQLString
       }
     default:
       return {
-        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+        type: GraphQLString
       }
   }
 }
@@ -181,7 +192,7 @@ const buildQuery = async function (ObjectTypes) {
               collectionQuery = [
                 key,
                 {
-                  type: new GraphQLList(value),
+                  type: value,
                   args: {
                     skip: {type: GraphQLInt},
                     limit: {type: GraphQLInt},
@@ -189,7 +200,8 @@ const buildQuery = async function (ObjectTypes) {
                       type: filterType[originalKey]
                     }
                   },
-                  resolve: (root, {id, spaceId}) => read(key, id, spaceId)
+                  // resolve: (root, {id, spaceId, skip, limit, where}) => ([{skip: 0, limit: 100, total: 100}])
+                  resolve: (root, {id, spaceId, skip, limit, where}) => read(key, id, spaceId, skip, limit, where)
                 }
               ]
             } else {
