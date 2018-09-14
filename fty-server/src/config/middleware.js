@@ -77,7 +77,8 @@ module.exports = [
       console.log(ctx.url)
       if (ctx.url.match(ctx.url.match(/^\/api\/v1\/account\/signup?/) ||
         ctx.url.match(/^\/api\/v1\/account\/signin?/) ||
-        ctx.url.match(/^\/api\/auth\/login?/))) {
+        ctx.url.match(/^\/api\/auth\/signup?/) ||
+        ctx.url.match(/^\/api\/auth\/signin?/))) {
         return false;
       } else if (ctx.url.match(ctx.url.match(/^\/graphql*?/) || ctx.url.match(/^\/api*?/))) {
         return true

@@ -7,11 +7,8 @@
 const readType = async function ({ type, spaceId, skip, limit, where }) {
   switch (type) {
     case 'User': {
-      console.log(where)
       const fieldModel = think.model('users');
       const userData = await fieldModel.page(1, limit).countSelect()
-
-      console.log(userData)
       return userData
       // return {
       //   total: userData.count,

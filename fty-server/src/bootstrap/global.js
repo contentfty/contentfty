@@ -13,11 +13,11 @@ global.dateNow = function () {
   return moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
 }
 global.ElementType = {
-  user: 'user',
-  space: 'space',
-  env: 'env',
-  org: 'org',
-  entry:'entry'
+  user: 'User',
+  space: 'Space',
+  env: 'Env',
+  org: 'Org',
+  entry:'Entry'
 }
 global.Generate = {
   id: () => {

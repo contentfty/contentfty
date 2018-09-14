@@ -7,7 +7,7 @@ module.exports = class extends BaseRest {
     this.DAO = this.model('users')
     this.metaDAO = this.model('usermeta')
   }
-  async loginAction () {
+  async signinAction () {
     const data = this.post()
     const userLogin = data.email;
 
@@ -80,7 +80,7 @@ module.exports = class extends BaseRest {
       // 1 注册元素类型
       const fty = think.service('fty')
       const userId = await fty.regElement(ElementType.user)
-      const orgId = await fty.regElement(ElementType.user)
+      const orgId = await fty.regElement(ElementType.org)
 
       const newUser = {
         id: userId,

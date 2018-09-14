@@ -26,8 +26,6 @@ const inspect = async function (root, modelTypes) {
  * @returns {*}
  */
 const readChildren = async function (links, modelTypes, spaceId) {
-  // console.log(modelTypes)
-  // console.log(spaceId)
   switch (links) {
     case 'Field': {
       return await think.model('fields', { spaceId: spaceId }).where({ typeId: modelTypes }).select()
