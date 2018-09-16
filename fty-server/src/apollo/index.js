@@ -8,33 +8,9 @@ const {makeExecutableSchema} = require('graphql-tools');
 module.exports = (options = {}) => {
 
   return async ctx => {
-    const spaceId = ctx.request.header['x-space-id']
+    // const spaceId = ctx.request.header['x-space-id']
+    const spaceId = ctx.url.split('/')[3]
     const schema = await buildSchema(spaceId)
-
-    // module.exports = makeExecutableSchema({
-    //   typeDefs: [
-    //     Scalar,
-    //     Query,
-    //     Field,
-    //     ContentType,
-    //     Org,
-    //     Auth,
-    //     User,
-    //     Space,
-    //     Entry
-    //   ],
-    //   resolvers: think._.merge(
-    //     resolvers,
-    //     fieldResolvers,
-    //     contentTypeResolvers,
-    //     orgResolvers,
-    //     authResolvers,
-    //     userResolvers,
-    //     spaceResolvers,
-    //     entryResolvers
-    //   )
-    // });
-
     options.schema = schema
 
     // 上下文配置

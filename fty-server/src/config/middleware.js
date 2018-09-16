@@ -91,7 +91,15 @@ module.exports = [
     options: {}
   },
   {
-    match: '/graphql',
+    match: ctx => {
+      if (ctx.url.match(/^\/graphql\/spaces\/(\w+)*?/)) {
+        // console.log(ctx.url)
+        // console.log(ctx)
+        // const originalKey = think._.upperFirst(think._.kebabCase(key).split('-')[0])
+        // console.log(ctx.url.split('/')[3])
+        return true
+      }
+    },
     handle: graphql,
     options: {
       schema: Schema

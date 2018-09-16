@@ -7,7 +7,7 @@ const {updateSchema} = require('../index')
  * 根据 SpaceId 读取全部内容模型
  * @returns {Promise<*[]>}
  */
-const readModel = async function () {
+const readModel = async function (spaceId) {
   // 数据模型就是表结构
 
   // const modelPath = pat.resolve()
@@ -15,10 +15,10 @@ const readModel = async function () {
   const sourcesTypes = await fs.readJson(sourcesPath)
 
   // 查询 entryTypes model
-  // const entryTypesModel = think.model('entrytypes')
-  // const entryTypes = await entryTypesModel.getAll()
-  // return [...sourcesTypes, ...entryTypes]
-  return [...sourcesTypes]
+  const entryTypesModel = think.model('entrytypes', {spaceId: spaceId})
+  const entryTypes = await entryTypesModel.getAll()
+  return [...sourcesTypes, ...entryTypes]
+  // return [...sourcesTypes]
 }
 
 /**

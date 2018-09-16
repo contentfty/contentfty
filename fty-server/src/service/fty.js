@@ -519,27 +519,41 @@ module.exports = class extends think.Service {
    * @param {*} user
    * @param {*} spaceId
    */
-  async saveEntry(entryInput, user, spaceId) {
+  async saveEntry(type, entryInput, user, spaceId) {
     if (think.isEmpty(entryInput.id)) {
+      console.log(entryInput)
+      console.log(spaceId)
+      console.log('alalala-a-a-a-a--a-a-a-aa-a--')
       //entry id
-      const id = await think.service('fty').regElement(ElementType.entry)
-
       // 检测内容类型存在
-      const entrytypeModel = await think.model('entrytypes', { spaceId: spaceId })
-      const entrytypeExists = await entrytypeModel.where({ id: entryInput.typeId }).find()
+      const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+      const entrytypeExists = await entrytypeModel.where({ name: 'Author' }).find()
       if (think.isEmpty(entrytypeExists)) {
         throw new Error('Entry Type does not exists!')
       }
+      const id = await think.service('fty').regElement(ElementType.entry)
 
-      const entryModel = await think.model('entries', { spaceId: spaceId })
+      const entryModel = think.model('entries', { spaceId: spaceId })
 
-      const type = 'version'  //TODO 默认保存在版本中 (后续需要修改)
+      const postType = 'version'
+
+      await entryModel.thenAdd({
+        id: id,
+        typeId: type,
+        createdBy: user.id,
+        postDate: postType !== 'version' ? dateNow() : null,
+        createdAt: dateNow(),
+        updatedAt: dateNow()
+      }, { id: id })
+
       // 保存至草稿
-      if (type !== 'draft') {
+      if (postType === 'draft') {
         const draftModel = await think.model('entrydrafts', { spaceId: spaceId })
         await draftModel.add({
+          name: 'aaa',
           entryId: id,
-          fields: entryInput.fields,//JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" }),//entryInput.fields
+          fields: JSON.stringify(entryInput),
+          // fields: entryInput, //JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" }),//entryInput.fields
           createdBy: user.id,
           createdAt: dateNow(),
           updatedAt: dateNow()
@@ -550,28 +564,16 @@ module.exports = class extends think.Service {
         //获取字段的最大值
         const maxNum = await versionModel.where({ entryId: id }).max('num')
 
-        // 内容结构 todo ...
-        //entryInput.fields = entryInput.fields ? entryInput.fields : JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" })
-
         await versionModel.add({
           entryId: id,
           num: maxNum ? maxNum + 1 : 1,
-          fields: entryInput.fields,
+          fields: JSON.stringify(entryInput),
+          // fields: entryInput.fields,
           createdBy: user.id,
           createdAt: dateNow(),
           updatedAt: dateNow()
         })
       }
-
-      // 新增  第一个参数为要添加的数据，第二个参数为添加的条件，根据第二个参数的条件查询无相关记录时才会添加
-      await entryModel.thenAdd({
-        id: id,
-        typeId: entryInput.typeId,
-        createdBy: user.id,
-        postDate: type !== 'version' ? dateNow() : null,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }, { id: id })
 
       return { id: id }
     } else {  // todo
@@ -589,7 +591,7 @@ module.exports = class extends think.Service {
       await versionModel.add({
         entryId: entryInput.id,
         num: entryversionsExists.num + 1,
-        fields: entryInput.fields,
+        fields: JSON.stringify(entryInput),
         createdBy: user.id,
         createdAt: dateNow(),
         updatedAt: dateNow()

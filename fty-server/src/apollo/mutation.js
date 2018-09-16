@@ -7,6 +7,7 @@ const {
   GraphQLList,
   GraphQLString,
   GraphQLInt,
+  GraphQLEnumType,
   GraphQLNonNull
 } = require('graphql')
 
@@ -15,6 +16,22 @@ const GraphQLJSON = require('graphql-type-json')
 const {writeEntry} = require('./db/write')
 const {deleteEntry} = require('./db/delete')
 const {readModel, writeModel} = require('./db/model')
+
+const fieldType = new GraphQLEnumType({
+  name: 'FieldType',
+  values: {
+    Symbol: {value: 'symbol'},
+    Text: {value: 'text'},
+    Integer: {value: 'integer'},
+    Number: {value: 'number'},
+    Date: {value: 'date'},
+    Location: {value: 'location'},
+    Boolean: {value: 'boolean'},
+    Link: {value: 'link'},
+    Array: {value: 'array'},
+    Object: {value: 'object'}
+  }
+})
 
 const LinkDataInputType = new GraphQLInputObjectType({
   name: 'LinkDataInput',
@@ -112,8 +129,18 @@ const buildInput = field => {
       }
 
     case 'Array': {
+      // if (field.items.type === 'Link') {
+      //   if (field.items.linkType === 'Entry') {
+      //     if (field.items.validations.length > 0) {
+      //       for (let linkContentType of field.items.validations) {
+      //
+      //       }
+      //     }
+      //   }
+      // }
       return {
-        type: field.required ? new GraphQLNonNull(new GraphQLList(LinkInputType)) : new GraphQLList(LinkInputType)
+        type: field.required ? new GraphQLNonNull(new GraphQLList(LinkInputType))
+          : new GraphQLList(LinkInputType)
       }
     }
     default:
@@ -133,7 +160,7 @@ const AuthUserInput = new GraphQLInputObjectType({
 
 const buildInputs = async function () {
   const InputType = {}
-  const model = await readModel()
+  const model = await readModel('8784tvwc6dpm')
   for (const structure of model) {
     InputType[structure.name] = new GraphQLInputObjectType({
       name: `${structure.name}Input`,

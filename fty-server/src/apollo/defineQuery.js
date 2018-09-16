@@ -1,4 +1,108 @@
 const {map, fromPairs, concat} = require('lodash')
+const {TyeComposer, EnumTypeComposer} = require('graphql-compose')
+
+/*const FieldTypeETC = EnumTypeComposer.create(`
+  enum FieldType {
+    Symbol
+    Text
+    Integer
+    Number
+    Date
+    Location
+    Boolean
+    Link
+    Array
+    Object
+  }
+`)*/
+const FieldTypeETC = EnumTypeComposer.create({
+  name: 'FieldTypeEnum',
+  values: {
+    SYMBOL: {value: 'Symbol'},
+    TEXT: {value: 'Text'},
+    INTEGER: {value: 'Integer'},
+    NUMBER: {value: 'Number'},
+    DATE: {value: 'Date'},
+    LOCATION: {value: 'Location'},
+    BOOLEAN: {value: 'Boolean'},
+    LINK: {value: 'Link'},
+    ARRAY: {value: 'Array'},
+    OBJECT: {value: 'Object'}
+  }
+})
+
+const UserTC = TyeComposer.create({
+  name: 'User',
+  fields: {
+    id: 'String!',
+    login: 'String',
+    email: 'String',
+    password: 'String',
+    displayName: 'String',
+    activated: 'Boolean',
+    confirmed: 'Boolean',
+    activationKey: 'String',
+    deleted: 'Boolean',
+    phone: 'String',
+    createdAt: 'Date',
+    updatedAt: 'Date'
+  }
+})
+
+const OrgTC = TypeComposer.create({
+  name: 'String',
+  createdBy: UserTC,
+  updatedBy: UserTC,
+  createdAt: 'Date',
+  updatedAt: 'Date'
+})
+
+const SpaceTC = TypeComposer.create({
+  orgId: 'String!',
+  name: 'String',
+  createdBy: UserTC,
+  updatedBy: UserTC,
+  createdAt: 'Date',
+  updatedAt: 'Date',
+})
+
+const FieldTC = TyeComposer.create({
+  name: 'String!',
+  title: 'String',
+  typeId: 'String!',
+  instructions: 'String',
+  type: FieldTypeETC,
+  unique: 'Boolean',
+  required: 'Boolean',
+  disabled: 'Boolean',
+  validations: 'JSON',
+  settings: 'JSON',
+  createdAt: 'Date',
+  updatedAt: 'Date'
+})
+
+const EntryTypeTC = TypeComposer.create({
+  name: 'String',
+  fields: [FieldTC],
+  createdBy: UserTC,
+  updatedBy: UserTC,
+  createdAt: 'Date',
+  updatedAt: 'Date'
+})
+
+const EntryTC = TyeComposer.create({
+  envId: 'String',
+  typeId: 'String',
+  createdBy: UserTC,
+  updatedBy: UserTC,
+  publishedAt: 'String',
+  createdAt: 'Date',
+  updatedAt: 'Date',
+  displayField: 'String',
+  name: 'String',
+  fields: 'JSON'
+})
+
 const {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -12,6 +116,7 @@ const {
   GraphQLNonNull,
   GraphQLInputObjectType
 } = require('graphql')
+
 const GraphQLJSON = require('graphql-type-json')
 const {readModel, getTypesNames} = require('./db/model')
 const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
@@ -156,7 +261,7 @@ const buildFilterInput = field => {
 
 const buildFilters = async function () {
   const InputType = {}
-  const model = await readModel('8784tvwc6dpm')
+  const model = await readModel()
   for (const structure of model) {
     InputType[structure.name] = new GraphQLInputObjectType({
       name: `${structure.name}Filter`,

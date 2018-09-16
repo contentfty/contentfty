@@ -29,7 +29,10 @@ const writeEntry = async function (type, data, context) {
       return await fty.saveField(data, context.spaceId)
     }
     default: {
-      return null
+      // console.log(type)
+      return await fty.saveEntry(type, data, context.user, context.spaceId)
+      // return await fty.saveEntryContent(data, context.user, context.spaceId)
+      // return null
     }
   }
 }
