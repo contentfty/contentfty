@@ -108,7 +108,20 @@ const readEntry = async function ({ type, id, spaceId }) {
       return null
     }
     default: {
-      return null
+      const entryModel = think.model('entries', { spaceId: spaceId })
+      const entryVersionModel = think.model('entryversions', { spaceId: spaceId })
+      let entryData = await entryModel.where({id: id}).find()
+      if (entryData.postDate !== null) {
+        let entryVersionData = await entryVersionModel.where({
+          entryId: entryData.id,
+          updatedAt: entryData.publishAt
+        }).find()
+        return JSON.parse(entryVersionData.fields)
+      }
+
+      return entryData
+      // const entryModel = think.model('entries', { spaceId: spaceId });
+      // return null
     }
   }
 }

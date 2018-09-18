@@ -175,7 +175,7 @@ const buildFilters = async function () {
   return InputType
 }
 
-const buildQuery = async function (ObjectTypes) {
+const buildQuery = async function (ObjectTypes, spaceId) {
   // 构建全部查询条件输入类型
   const filterType = await buildFilters()
 
@@ -195,10 +195,10 @@ const buildQuery = async function (ObjectTypes) {
                   type: value,
                   args: {
                     skip: {type: GraphQLInt},
-                    limit: {type: GraphQLInt},
-                    where: {
-                      type: filterType[originalKey]
-                    }
+                    limit: {type: GraphQLInt}
+                    // where: {
+                    //   type: filterType[originalKey]
+                    // }
                   },
                   // resolve: (root, {id, spaceId, skip, limit, where}) => ([{skip: 0, limit: 100, total: 100}])
                   resolve: (root, {id, spaceId, skip, limit, where}) => read(key, id, spaceId, skip, limit, where)
@@ -212,12 +212,9 @@ const buildQuery = async function (ObjectTypes) {
                   args: {
                     id: {
                       type: GraphQLID
-                    },
-                    spaceId: {
-                      type: GraphQLID
                     }
                   },
-                  resolve: (root, {id, spaceId}) => read(key, id, spaceId)
+                  resolve: (root, {id}) => read(key, id, spaceId)
                 }
               ]
             }

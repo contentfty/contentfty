@@ -15,7 +15,7 @@ module.exports = class extends think.Service {
    *  @param {String} type   [执行类型，export - 备份数据， import - 还原数据]
    * @return {[]}         []
    */
-  constructor(config) {
+  constructor (config) {
     super()
     this.config = config
   }
@@ -27,7 +27,7 @@ module.exports = class extends think.Service {
   //   this.type = type;
   //   this.ctx = ctx;
   // }
-  async create() {
+  async create () {
     const db = think.model('mysql', think.config('model'));
     const dbConfig = think.config('model.mysql');
     const dbFile = think.ROOT_PATH + '/scripts/schema.sql';
@@ -74,7 +74,7 @@ module.exports = class extends think.Service {
 
   }
 
-  async drop() {
+  async drop () {
     const db = think.model('mysql', think.config('model'));
     const dbConfig = think.config('model.mysql');
     const dbFile = think.ROOT_PATH + '/scripts/drop.sql';
@@ -100,7 +100,7 @@ module.exports = class extends think.Service {
     }
   }
 
-  async init() {
+  async init () {
     // 创建内容类型
     // const entryType = think.model('entrytypes')
     // await entryType.addMany([{
@@ -123,8 +123,8 @@ module.exports = class extends think.Service {
    * @param type
    * @returns {Promise<*>}
    */
-  async regElement(type) {
-    const elementModel = think.model('elements', { spaceId: this.spaceId })
+  async regElement (type) {
+    const elementModel = think.model('elements', {spaceId: this.spaceId})
     const typeId = type === ElementType.space ? Generate.spaceId() : Generate.id()
     try {
       await elementModel.add({
@@ -147,18 +147,29 @@ module.exports = class extends think.Service {
    * 保存内容类型(创建内容类型 and 更新内容类型)
    * @returns {Promise<*>}
    */
-  async saveEntryType(entrytypeInput, user, spaceId) {
+  async saveEntryType (entrytypeInput, user, spaceId) {
     if (think.isEmpty(entrytypeInput.id)) {
-      const entryTypeModel = think.model('entrytypes', { spaceId: spaceId })
-      const entrytypeExists = await entryTypeModel.where({ name: entrytypeInput.name }).find();
+      const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
+      const entrytypeExists = await entryTypeModel.where({name: entrytypeInput.name}).find();
       if (!think.isEmpty(entrytypeExists)) {
         throw new Error(`${entrytypeInput.name} already exists!`)
       }
+      const contentTypeID = await this.regElement(ElementType.contentType)
+
+      // 保存 Fields
+      const fieldsModel = think.model('fields', {spaceId: spaceId})
+      for (let item of entrytypeInput.fields) {
+        item.typeId = contentTypeID
+        item.id = Generate.id()
+        item.createdAt = dateNow()
+        item.updatedAt = dateNow()
+      }
+      const fieldIds = await fieldsModel.addMany(entrytypeInput.fields)
 
       const saveParams = {
-        id: Generate.id(),
+        id: contentTypeID,
         name: entrytypeInput.name,
-        fields: JSON.stringify([]),
+        fields: JSON.stringify(think._.map(entrytypeInput.fields, 'id')),
         createdBy: user.id,
         updatedBy: user.id,
         createdAt: dateNow(),
@@ -167,15 +178,15 @@ module.exports = class extends think.Service {
       await entryTypeModel.add(saveParams)
       return saveParams
     } else {
-      const entryTypeModel = think.model('entrytypes', { spaceId: spaceId })
-      const entrytypeExists = await entryTypeModel.where({ id: entrytypeInput.id }).find()
+      const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
+      const entrytypeExists = await entryTypeModel.where({id: entrytypeInput.id}).find()
       if (think.isEmpty(entrytypeExists)) {
         throw new Error('Entry Type does not exists!')
       }
       entrytypeInput.updatedAt = dateNow()
-      const affectedRows = await entryTypeModel.where({ id: entrytypeInput.id }).update(entrytypeInput)
+      const affectedRows = await entryTypeModel.where({id: entrytypeInput.id}).update(entrytypeInput)
       if (affectedRows > 0) {
-        return await entryTypeModel.where({ id: entrytypeInput.id }).find()
+        return await entryTypeModel.where({id: entrytypeInput.id}).find()
       }
       throw new Error('Entry Type update failed!')
     }
@@ -187,7 +198,7 @@ module.exports = class extends think.Service {
    * @param user
    * @returns {Promise<{id: *}>}
    */
-  async saveOrg(orgInput, user) {
+  async saveOrg (orgInput, user) {
     if (think.isEmpty(orgInput.id)) {
       const orgModel = think.model('orgs');
       const orgId = await this.regElement(ElementType.org)
@@ -207,22 +218,22 @@ module.exports = class extends think.Service {
         await usermetaModel.add({
           userId: user.id,
           metaKey: `org_${orgId}_capabilities`,
-          metaValue: JSON.stringify({ 'role': role, 'type': 'org' })
+          metaValue: JSON.stringify({'role': role, 'type': 'org'})
         })
-        return { id: orgId }
+        return {id: orgId}
       } else {
         return this.fail('Organization creation failed!')
       }
     } else {
       const orgModel = think.model('orgs');
-      const orgExists = await orgModel.where({ id: orgInput.id }).find();
+      const orgExists = await orgModel.where({id: orgInput.id}).find();
       if (think.isEmpty(orgExists)) {
         throw new Error('Organization does not exists!')
       }
       orgInput.updatedAt = dateNow()
-      const affectedRows = await orgModel.where({ id: orgInput.id }).update(orgInput)
+      const affectedRows = await orgModel.where({id: orgInput.id}).update(orgInput)
       if (affectedRows > 0) {
-        return await orgModel.where({ id: orgInput.id }).find()
+        return await orgModel.where({id: orgInput.id}).find()
       } else {
         return this.fail('Organization update failed!')
       }
@@ -235,12 +246,12 @@ module.exports = class extends think.Service {
    * @param user
    * @returns {Promise<*>}
    */
-  async saveSpace(spaceInput, user) {
+  async saveSpace (spaceInput, user) {
     if (think.isEmpty(spaceInput.id)) {
       const spaceModel = think.model('spaces');
       // 验证组织 ID
       const orgModel = think.model('orgs')
-      const orgExists = await orgModel.where({ id: spaceInput.orgId }).field(['id']).find()
+      const orgExists = await orgModel.where({id: spaceInput.orgId}).field(['id']).find()
       if (think.isEmpty(orgExists)) {
         throw new Error('Organization does not exists!')
       }
@@ -259,11 +270,11 @@ module.exports = class extends think.Service {
       })
 
       //生成空间表结构
-      const db = think.service('fty', { spaceId: spaceId })
+      const db = think.service('fty', {spaceId: spaceId})
       const res = await db.create()
       if (think.isEmpty(res)) {
         // 记录用户 owner
-        const spaceElementsModel = think.model('elements', { spaceId: spaceId })
+        const spaceElementsModel = think.model('elements', {spaceId: spaceId})
         await spaceElementsModel.addMany([{
           id: user.id,
           type: ElementType.user,
@@ -277,7 +288,7 @@ module.exports = class extends think.Service {
         }])
 
         // 创建环境
-        const envModel = think.model('envs', { spaceId: spaceId })
+        const envModel = think.model('envs', {spaceId: spaceId})
         await envModel.add({
           id: 'master',
           spaceId: spaceId,
@@ -305,23 +316,23 @@ module.exports = class extends think.Service {
       await usermetaModel.add({
         userId: user.id,
         metaKey: `space_${spaceId}_capabilities`,
-        metaValue: JSON.stringify({ 'role': role, 'type': 'space' })
+        metaValue: JSON.stringify({'role': role, 'type': 'space'})
       })
 
-      const persistSpace = await spaceModel.where({ id: spaceId }).find()
+      const persistSpace = await spaceModel.where({id: spaceId}).find()
       return persistSpace
     } else {
       const spaceModel = think.model('spaces');
-      const spaceExists = await spaceModel.where({ id: spaceInput.id }).find();
+      const spaceExists = await spaceModel.where({id: spaceInput.id}).find();
       if (think.isEmpty(spaceExists)) {
         throw new Error('Space does not exists!')
       }
-      const affectedRows = await spaceModel.where({ id: spaceInput.id }).update({
+      const affectedRows = await spaceModel.where({id: spaceInput.id}).update({
         name: spaceInput.name,
         updatedAt: dateNow()
       })
       if (affectedRows > 0) {
-        return await spaceModel.where({ id: spaceInput.id }).find()
+        return await spaceModel.where({id: spaceInput.id}).find()
       } else {
         return this.fail('Space update failed!')
       }
@@ -335,7 +346,7 @@ module.exports = class extends think.Service {
    * @param userInput
    * @returns {Promise<*>}
    */
-  async saveUser(userInput) {
+  async saveUser (userInput) {
     const elementsModel = think.model('elements')
     const userModel = think.model('users')
     const orgModel = think.model('orgs')
@@ -344,11 +355,11 @@ module.exports = class extends think.Service {
       const userId = Generate.id()
       let orgId = Generate.id()
       // 1 验证组织
-      if (!think.isEmpty(userInput.orgId)){
+      if (!think.isEmpty(userInput.orgId)) {
         // check org
         const hasOrganization = await orgModel.check(userInput.orgId)
         if (hasOrganization) {
-        orgId = userInput.orgId
+          orgId = userInput.orgId
         } else {
           throw new Error('Organization id does not exists!')
         }
@@ -362,11 +373,9 @@ module.exports = class extends think.Service {
       */
 
 
-
-
       const insertIds = await elementsModel.addMany([
-        { id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow() },
-        { id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow() },
+        {id: userId, type: think.elementType.user, createdAt: dateNow(), updatedAt: dateNow()},
+        {id: orgId, type: think.elementType.org, createdAt: dateNow(), updatedAt: dateNow()},
       ])
 
       if (insertIds.length === 2) {
@@ -397,7 +406,7 @@ module.exports = class extends think.Service {
         await usermetaModel.add({
           userId: userId,
           metaKey: `org_${orgId}_capabilities`,
-          metaValue: JSON.stringify({ 'role': role, 'type': 'org' })
+          metaValue: JSON.stringify({'role': role, 'type': 'org'})
         })
 
         const token = await think.service('authService').generateToken({
@@ -405,7 +414,7 @@ module.exports = class extends think.Service {
           email: userInput.email,
           displayName: userInput.displayName
         })
-        return { token: token }
+        return {token: token}
       } else {
         return this.fail('User registration failed!')
       }
@@ -414,14 +423,14 @@ module.exports = class extends think.Service {
         delete userInput['password']    //password 属性需要单独更新
       }
       const userModel = think.model('users')
-      const userExists = await userModel.where({ id: userInput.id }).find()
+      const userExists = await userModel.where({id: userInput.id}).find()
       if (think.isEmpty(userExists)) {
         throw new Error('User does not exists!')
       }
       userInput.updatedAt = dateNow()
-      const affectedRows = await userModel.where({ id: userInput.id }).update(userInput)
+      const affectedRows = await userModel.where({id: userInput.id}).update(userInput)
       if (affectedRows > 0) {
-        return { id: userExists.id }
+        return {id: userExists.id}
       } else {
         return this.fail('User update failed!')
       }
@@ -435,19 +444,19 @@ module.exports = class extends think.Service {
    * @param spaceId
    * @returns {Promise<any>}
    */
-  async saveField(fieldInput, spaceId) {
+  async saveField (fieldInput, spaceId) {
     //name 和 typeId 作为联合唯一  , 但name允许被修改，根据id来处理
     if (think.isEmpty(fieldInput.id)) {
-      const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
+      const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
 
       //判断内容类型存在
-      const entrytypeExists = await entrytypeModel.where({ id: fieldInput.typeId }).find()
+      const entrytypeExists = await entrytypeModel.where({id: fieldInput.typeId}).find()
       if (think.isEmpty(entrytypeExists)) {
         throw new Error('Entry Type does not exists!')
       }
 
-      const fieldModel = think.model('fields', { spaceId: spaceId })
-      const fieldExists = await fieldModel.where({ name: fieldInput.name, typeId: fieldInput.typeId }).find()
+      const fieldModel = think.model('fields', {spaceId: spaceId})
+      const fieldExists = await fieldModel.where({name: fieldInput.name, typeId: fieldInput.typeId}).find()
       if (!think.isEmpty(fieldExists)) {
         throw new Error(`${fieldInput.name} already exists!`)
       }
@@ -473,7 +482,7 @@ module.exports = class extends think.Service {
       }).update({
         'fields': ['exp', `JSON_ARRAY_APPEND(fields, '$', '${id}')`]
       })
-      return await fieldModel.where({ id: id }).find()
+      return await fieldModel.where({id: id}).find()
     } else {
       if (think.isEmpty(fieldInput.name)) {
         throw new Error('name does not exists!')
@@ -483,21 +492,21 @@ module.exports = class extends think.Service {
       }
 
       //判断内容类型存在
-      const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
-      const entrytypeExists = await entrytypeModel.where({ id: fieldInput.typeId }).find()
+      const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
+      const entrytypeExists = await entrytypeModel.where({id: fieldInput.typeId}).find()
       if (think.isEmpty(entrytypeExists)) {
         throw new Error('Entry Type does not exists!')
       }
 
-      const fieldModel = think.model('fields', { spaceId: spaceId })
+      const fieldModel = think.model('fields', {spaceId: spaceId})
       //检测新修改的name和typeId组合是否已经存在
-      const exists = await fieldModel.where({ name: fieldInput.name, typeId: fieldInput.typeId }).find()
+      const exists = await fieldModel.where({name: fieldInput.name, typeId: fieldInput.typeId}).find()
       if (!think.isEmpty(exists)) {
         throw new Error(`${fieldInput.name} already exists!`)
       }
 
       //判断字段存在
-      const fieldExists = await fieldModel.where({ id: fieldInput.id }).find()
+      const fieldExists = await fieldModel.where({id: fieldInput.id}).find()
       if (think.isEmpty(fieldExists)) {
         throw new Error('Field does not exists!')
       }
@@ -507,9 +516,9 @@ module.exports = class extends think.Service {
       }
 
       fieldInput.updatedAt = dateNow()
-      await fieldModel.where({ id: fieldInput.id }).update(fieldInput)
+      await fieldModel.where({id: fieldInput.id}).update(fieldInput)
 
-      return await fieldModel.where({ id: fieldInput.id }).find()
+      return await fieldModel.where({id: fieldInput.id}).find()
     }
   }
 
@@ -519,21 +528,17 @@ module.exports = class extends think.Service {
    * @param {*} user
    * @param {*} spaceId
    */
-  async saveEntry(type, entryInput, user, spaceId) {
+  async saveEntry (type, entryInput, user, spaceId) {
     if (think.isEmpty(entryInput.id)) {
-      console.log(entryInput)
-      console.log(spaceId)
-      console.log('alalala-a-a-a-a--a-a-a-aa-a--')
-      //entry id
       // 检测内容类型存在
-      const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
-      const entrytypeExists = await entrytypeModel.where({ name: 'Author' }).find()
+      const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
+      const entrytypeExists = await entrytypeModel.where({name: type}).find()
       if (think.isEmpty(entrytypeExists)) {
         throw new Error('Entry Type does not exists!')
       }
       const id = await think.service('fty').regElement(ElementType.entry)
 
-      const entryModel = think.model('entries', { spaceId: spaceId })
+      const entryModel = think.model('entries', {spaceId: spaceId})
 
       const postType = 'version'
 
@@ -541,14 +546,14 @@ module.exports = class extends think.Service {
         id: id,
         typeId: type,
         createdBy: user.id,
-        postDate: postType !== 'version' ? dateNow() : null,
+        publishAt: postType === 'version' ? dateNow() : null,
         createdAt: dateNow(),
         updatedAt: dateNow()
-      }, { id: id })
-
+      }, {id: id})
+      const versionModel = await think.model('entryversions', {spaceId: spaceId})
       // 保存至草稿
       if (postType === 'draft') {
-        const draftModel = await think.model('entrydrafts', { spaceId: spaceId })
+        const draftModel = await think.model('entrydrafts', {spaceId: spaceId})
         await draftModel.add({
           name: 'aaa',
           entryId: id,
@@ -560,9 +565,8 @@ module.exports = class extends think.Service {
         })
       } else {
         // 保存版本
-        const versionModel = await think.model('entryversions', { spaceId: spaceId })
         //获取字段的最大值
-        const maxNum = await versionModel.where({ entryId: id }).max('num')
+        const maxNum = await versionModel.where({entryId: id}).max('num')
 
         await versionModel.add({
           entryId: id,
@@ -574,17 +578,23 @@ module.exports = class extends think.Service {
           updatedAt: dateNow()
         })
       }
-
-      return { id: id }
+      let entryData = await entryModel.where({id: id}).find()
+      if (entryData.publishAt !== null) {
+        let entryVersionData = await versionModel.where({
+          entryId: entryData.id,
+          updatedAt: entryData.publishAt
+        }).find()
+        return think._.assign(JSON.parse(entryVersionData.fields), {id: entryData.id})
+      }
     } else {  // todo
-      const entryModel = await think.model('entries', { spaceId: spaceId })
-      const entryExists = await entryModel.where({ id: entryInput.id }).find()
+      const entryModel = await think.model('entries', {spaceId: spaceId})
+      const entryExists = await entryModel.where({id: entryInput.id}).find()
       if (think.isEmpty(entryExists)) {
         throw new Error('Entry does not exists!')
       }
 
-      const versionModel = await think.model('entryversions', { spaceId: spaceId })
-      const entryversionsExists = await versionModel.where({ entryId: entryInput.id }).order('num DESC').limit(1).find()
+      const versionModel = await think.model('entryversions', {spaceId: spaceId})
+      const entryversionsExists = await versionModel.where({entryId: entryInput.id}).order('num DESC').limit(1).find()
       if (think.isEmpty(entryversionsExists)) {
         throw new Error('Entry Versions does not exists!')
       }
@@ -597,7 +607,7 @@ module.exports = class extends think.Service {
         updatedAt: dateNow()
       })
 
-      return { id: entryInput.id }
+      return {id: entryInput.id}
     }
   }
 
@@ -609,19 +619,19 @@ module.exports = class extends think.Service {
    * 删除用户
    * @param {*} userInput
    */
-  async deleteUser(userInput) {
+  async deleteUser (userInput) {
     if (think.isEmpty(userInput.id)) {
       throw new Error('User id does not exists!')
     }
 
     const userModel = await think.model('users')
-    const userExists = await userModel.where({ id: userInput.id }).find()
+    const userExists = await userModel.where({id: userInput.id}).find()
     if (think.isEmpty(userExists)) {
       throw new Error('User does not exists!')
     }
 
     //逻辑删除
-    const affectedRows = await userModel.where({ id: userInput.id }).update({ deleted: 1 })
+    const affectedRows = await userModel.where({id: userInput.id}).update({deleted: 1})
     if (affectedRows > 0) {
       return true;
     }
@@ -632,21 +642,21 @@ module.exports = class extends think.Service {
    * 删除空间
    * @param {*} spaceInput
    */
-  async deleteSpace(spaceInput) {
+  async deleteSpace (spaceInput) {
     const spaceId = spaceInput.id
     if (think.isEmpty(spaceId)) {
       throw new Error('Space id does not exists!')
     }
     const spaceModel = await think.model('spaces')
-    const spaceExists = await spaceModel.where({ id: spaceId }).find()
+    const spaceExists = await spaceModel.where({id: spaceId}).find()
     if (think.isEmpty(spaceExists)) {
       throw new Error('Space does not exists!')
     }
 
-    const db = think.service('fty', { spaceId: spaceId })
+    const db = think.service('fty', {spaceId: spaceId})
     const isDrop = await db.drop() //删除空间关联表
     if (isDrop) {
-      const affectedRows = await spaceModel.where({ id: spaceId }).delete()
+      const affectedRows = await spaceModel.where({id: spaceId}).delete()
       if (affectedRows > 0) {
         return true;
       }
@@ -659,7 +669,7 @@ module.exports = class extends think.Service {
    * @param {*} entrytypeInput
    * @param {*} spaceId
    */
-  async deleteEntryType(entrytypeInput, spaceId) {
+  async deleteEntryType (entrytypeInput, spaceId) {
     /*
       注意: 以下操作全属于物理删除，删除的数据将不可恢复。
       1. 删除草稿表中的记录
@@ -672,37 +682,37 @@ module.exports = class extends think.Service {
       throw new Error('Entry Type id does not exists!')
     }
     //entrytypes
-    const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
-    const entrytypeExists = await entrytypeModel.where({ id: entrytypeInput.id }).find()
+    const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
+    const entrytypeExists = await entrytypeModel.where({id: entrytypeInput.id}).find()
     if (think.isEmpty(entrytypeExists)) {
       throw new Error('Entry Type does not exists!')
     }
 
     //field
-    const fieldModel = think.model('fields', { spaceId: spaceId })
+    const fieldModel = think.model('fields', {spaceId: spaceId})
 
     //entries
-    const entryModel = await think.model('entries', { spaceId: spaceId })
-    const entries = await entryModel.where({ typeId: entrytypeInput.id }).select()
+    const entryModel = await think.model('entries', {spaceId: spaceId})
+    const entries = await entryModel.where({typeId: entrytypeInput.id}).select()
     if (!think.isEmpty(entries)) {
-      const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
-      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      const draftsModel = await think.model('entrydrafts', {spaceId: spaceId})
+      const versionModel = await think.model('entryversions', {spaceId: spaceId})
       entries.forEach(async (entry) => {
         if (think.isEmpty(entry.postDate)) {
           //删除草稿
-          await draftsModel.where({ entryId: entry.id }).delete()
+          await draftsModel.where({entryId: entry.id}).delete()
         } else {
           //删除版本
-          await versionModel.where({ entryId: entry.id }).delete()
+          await versionModel.where({entryId: entry.id}).delete()
         }
       });
       //删除条目
-      await entryModel.where({ typeId: entrytypeInput.id }).delete()
+      await entryModel.where({typeId: entrytypeInput.id}).delete()
     }
     //删除字段
-    await fieldModel.where({ typeId: entrytypeInput.id }).delete()
+    await fieldModel.where({typeId: entrytypeInput.id}).delete()
     //删除内容类型
-    await entrytypeModel.where({ id: entrytypeInput.id }).delete()
+    await entrytypeModel.where({id: entrytypeInput.id}).delete()
     return true;
   }
 
@@ -711,7 +721,7 @@ module.exports = class extends think.Service {
    * @param {*} fieldInput
    * @param {*} spaceId
    */
-  async deleteField(fieldInput, user, spaceId) {
+  async deleteField (fieldInput, user, spaceId) {
     /*
     info: 删除字段
     1. 处理entrytypes表中的fields字段
@@ -723,15 +733,15 @@ module.exports = class extends think.Service {
       throw new Error('Field id does not exists!')
     }
 
-    const fieldModel = think.model('fields', { spaceId: spaceId })
-    const fieldExists = await fieldModel.where({ id: fieldInput.id }).find()
+    const fieldModel = think.model('fields', {spaceId: spaceId})
+    const fieldExists = await fieldModel.where({id: fieldInput.id}).find()
     if (think.isEmpty(fieldExists)) {
       throw new Error('Field does not exists!')
     }
 
     //entrytypes
-    const entrytypeModel = think.model('entrytypes', { spaceId: spaceId })
-    const entrytypeExists = await entrytypeModel.where({ id: fieldExists.typeId }).find()
+    const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
+    const entrytypeExists = await entrytypeModel.where({id: fieldExists.typeId}).find()
     if (think.isEmpty(entrytypeExists)) {
       throw new Error('Entry Type does not exists!')
     }
@@ -749,27 +759,27 @@ module.exports = class extends think.Service {
     })
 
     //entries
-    const entryModel = await think.model('entries', { spaceId: spaceId })
-    const entries = await entryModel.where({ typeId: fieldExists.typeId }).select()
+    const entryModel = await think.model('entries', {spaceId: spaceId})
+    const entries = await entryModel.where({typeId: fieldExists.typeId}).select()
 
     if (!think.isEmpty(entries)) {
-      const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
-      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      const draftsModel = await think.model('entrydrafts', {spaceId: spaceId})
+      const versionModel = await think.model('entryversions', {spaceId: spaceId})
       entries.forEach(async (entry) => {
         if (think.isEmpty(entry.postDate)) {  //草稿
-          const drafts = await draftsModel.where({ entryId: entry.id }).find()
+          const drafts = await draftsModel.where({entryId: entry.id}).find()
           if (!think.isEmpty(drafts)) {
             let newFields = drafts.fields ? JSON.parse(drafts.fields) : null
             //删除移除的字段
             delete newFields[`${fieldExists.name}`]
 
-            await draftsModel.where({ entryId: entry.id }).update({
+            await draftsModel.where({entryId: entry.id}).update({
               fields: newFields ? JSON.stringify(newFields) : null,
               updatedAt: dateNow()
             })
           }
         } else {  //已发布
-          const version = await versionModel.where({ entryId: entry.id }).order('num DESC').limit(1).find()
+          const version = await versionModel.where({entryId: entry.id}).order('num DESC').limit(1).find()
           if (!think.isEmpty(version)) {
             let newFields = version.fields ? JSON.parse(version.fields) : null
             //删除移除的字段
@@ -788,7 +798,7 @@ module.exports = class extends think.Service {
       });
     }
 
-    await fieldModel.where({ id: fieldInput.id }).delete()
+    await fieldModel.where({id: fieldInput.id}).delete()
     return true;
   }
 
@@ -797,28 +807,28 @@ module.exports = class extends think.Service {
    * @param {*} entryInput
    * @param {*} spaceId
    */
-  async deleteEntry(entryInput, spaceId) {
+  async deleteEntry (entryInput, spaceId) {
     if (think.isEmpty(entryInput.id)) {
       throw new Error('Entry id does not exists!')
     }
-    const entryModel = await think.model('entries', { spaceId: spaceId })
-    const entryExists = await entryModel.where({ id: entryInput.id }).find()
+    const entryModel = await think.model('entries', {spaceId: spaceId})
+    const entryExists = await entryModel.where({id: entryInput.id}).find()
     if (think.isEmpty(entryExists)) {
       throw new Error('Entry does not exists!')
     }
 
     if (think.isEmpty(entryExists.postDate)) {
-      const draftsModel = await think.model('entrydrafts', { spaceId: spaceId })
+      const draftsModel = await think.model('entrydrafts', {spaceId: spaceId})
       await draftsModel.where({
         entryId: entryInput.id
       }).delete()
     } else {
-      const versionModel = await think.model('entryversions', { spaceId: spaceId })
+      const versionModel = await think.model('entryversions', {spaceId: spaceId})
       await versionModel.where({
         entryId: entryInput.id
       }).delete()
     }
-    await entryModel.where({ id: entryInput.id }).delete()
+    await entryModel.where({id: entryInput.id}).delete()
     return true
   }
 }

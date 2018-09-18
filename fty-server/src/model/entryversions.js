@@ -24,7 +24,7 @@ module.exports = class extends Base {
       id: entryId,
       typeId: typeId,
       createdBy: createdBy,
-      postDate: dateNow(),
+      publishAt: dateNow(),
       createdAt: dateNow(),
       updatedAt: dateNow()
     }, {

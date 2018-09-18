@@ -1,5 +1,5 @@
 const {isString, fromPairs} = require('lodash')
-
+const {InputTypeComposer, EnumTypeComposer} = require('graphql-compose')
 const {
   GraphQLObjectType,
   GraphQLInputObjectType,
@@ -16,22 +16,31 @@ const GraphQLJSON = require('graphql-type-json')
 const {writeEntry} = require('./db/write')
 const {deleteEntry} = require('./db/delete')
 const {readModel, writeModel} = require('./db/model')
-
-const fieldType = new GraphQLEnumType({
-  name: 'FieldType',
+const LinkETC = EnumTypeComposer.create({
+  name: 'LinkTypeEnum',
   values: {
-    Symbol: {value: 'symbol'},
-    Text: {value: 'text'},
-    Integer: {value: 'integer'},
-    Number: {value: 'number'},
-    Date: {value: 'date'},
-    Location: {value: 'location'},
-    Boolean: {value: 'boolean'},
-    Link: {value: 'link'},
-    Array: {value: 'array'},
-    Object: {value: 'object'}
+    ASSET: {value: 'Asset'},
+    ENTRY: {value: 'Entry'},
+    SPACE: {value: 'Space'},
+    ENVIRONMENT: {value: 'Environment'}
   }
 })
+const FieldETC = EnumTypeComposer.create({
+  name: 'FieldTypeEnum',
+  values: {
+    SYMBOL: {value: 'symbol', description: '短文本, 一般用于标题、名称等, 最大长度 256字符'},
+    TEXT: {value: 'text', description: '长文本，文章段落、大量文本, 最大长度  50,000字符'},
+    INTEGER: {value: 'integer', description: '整型数字, -253 253'},
+    NUMBER: {value: 'number'},
+    DATE: {value: 'date'},
+    LOCATION: {value: 'location'},
+    BOOLEAN: {value: 'boolean'},
+    LINK: {value: 'link'},
+    ARRAY: {value: 'array'},
+    OBJECT: {value: 'object'}
+  }
+})
+
 
 const LinkDataInputType = new GraphQLInputObjectType({
   name: 'LinkDataInput',
@@ -53,6 +62,76 @@ const LinkInputType = new GraphQLInputObjectType({
     }
   })
 })
+
+const RegexpITC = InputTypeComposer.create({
+  name: 'RegexpInput',
+  fields: {
+    pattern: 'String!'
+  }
+})
+
+const SizeITC = InputTypeComposer.create({
+  name: 'Size',
+  fields: {
+    min: 'Int',
+    max: 'Int'
+  }
+})
+const ValidationITC = InputTypeComposer.create({
+  name: 'ValidationInput',
+  fields: {
+    size: SizeITC,
+    regexp: RegexpITC,
+    message: 'String'
+  }
+  // types: [RegexpITC.getType(), SizeITC.getType()]
+})
+const FieldITC = InputTypeComposer.create({
+  name: 'EntryTypeFieldInput',
+  description: '内容字段',
+  fields: {
+    type: {
+      type: FieldETC.getTypeNonNull(),
+      description: '字段类型'
+    },
+    linkType: {
+      type: LinkETC,
+      description: 'Link 字段的类型'
+    },
+    name: {
+      type: 'String!',
+      description: '字段名'
+    },
+    title: {
+      type: 'String',
+      description: '字段标题'
+    },
+    instructions: {
+      type: 'String',
+      description: '字段简介'
+    },
+    unique: {
+      type: 'Boolean',
+      description: '字段是否唯一'
+    },
+    required: {
+      type: 'Boolean',
+      description: '字段是否必填'
+    },
+    validations: {
+      type: [ValidationITC.getType()],
+      description: '字段的验证规则'
+    },
+    settings: {
+      type: 'JSON',
+      description: '字段的样式配置'
+    }
+  }
+})
+// const fieldName = 'type'
+// const FieldInputType = new GraphQLInputObjectType({
+//
+// })
 
 const ArrayInputType = new GraphQLInputObjectType({
   name: 'ArrayInput',
@@ -129,18 +208,17 @@ const buildInput = field => {
       }
 
     case 'Array': {
-      // if (field.items.type === 'Link') {
-      //   if (field.items.linkType === 'Entry') {
-      //     if (field.items.validations.length > 0) {
-      //       for (let linkContentType of field.items.validations) {
-      //
-      //       }
-      //     }
-      //   }
-      // }
+      if (field.items.type === 'Link') {
+        if (field.items.linkType === 'Field') {
+          return {
+            type: field.required ? new GraphQLNonNull(new GraphQLList(FieldITC.getType()))
+              : new GraphQLList(FieldITC.getType())
+          }
+        }
+      }
       return {
-        type: field.required ? new GraphQLNonNull(new GraphQLList(LinkInputType))
-          : new GraphQLList(LinkInputType)
+        type: field.required ? new GraphQLNonNull(new GraphQLList(FieldITC.getType()))
+          : new GraphQLList(FieldITC.getType())
       }
     }
     default:
@@ -253,10 +331,16 @@ const buildMutation = async function (ObjectTypes) {
         }
       }
 
+      // MutationObjects.upload = {
+      //   name: 'UploadProcess',
+      //   args: {
+      //
+      //   }
+      // }
       Object.keys(InputType).forEach(key => {
         const inputs = {}
         inputs[key.toLowerCase()] = {type: InputType[key]}
-        MutationObjects[`save${key}`] = {
+        MutationObjects[`save${think._.capitalize(key)}`] = {
           type: ObjectTypes[key],
           args: {...inputs},
           resolve: async (root, params, context) => {
@@ -274,7 +358,7 @@ const buildMutation = async function (ObjectTypes) {
           }
         }
 
-        MutationObjects[`delete${key}`] = {
+        MutationObjects[`delete${think._.capitalize(key)}`] = {
           type: buildDeleteObject(key),
           args: {...inputs},
           resolve: async (root, params, context) => {

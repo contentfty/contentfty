@@ -11,7 +11,8 @@ module.exports = (options = {}) => {
     // const spaceId = ctx.request.header['x-space-id']
     const spaceId = ctx.url.split('/')[3]
     // const schema = await buildSchema(spaceId)
-    options.schema = buildSchema
+    options.schema = await buildSchema(spaceId)
+    // options.schema = buildSchema
 
     // 上下文配置
     options.context = think.extend(options.context, {
