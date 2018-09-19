@@ -317,8 +317,8 @@ const tokenType = new GraphQLObjectType({
 });
 
 const buildMutation = async function (ObjectTypes) {
-  const InputType = await
-    buildInputs()
+  console.log(ObjectTypes)
+  const InputType = await buildInputs()
   const MutationObjects = {}
 
   const _buildMutationObjects = (objects, key, inputs) => {
