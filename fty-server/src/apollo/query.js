@@ -201,7 +201,7 @@ const buildQuery = async function (ObjectTypes, spaceId) {
                     // }
                   },
                   // resolve: (root, {id, spaceId, skip, limit, where}) => ([{skip: 0, limit: 100, total: 100}])
-                  resolve: (root, {id, spaceId, skip, limit, where}) => read(key, id, spaceId, skip, limit, where)
+                  resolve: (root, {id, skip, limit, where}) => read(key, id, spaceId, skip, limit, where)
                 }
               ]
             } else {

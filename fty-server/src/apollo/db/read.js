@@ -45,15 +45,18 @@ const readType = async function ({ type, spaceId, skip, limit, where }) {
       return await think.model('fields', { spaceId: spaceId }).select()
     }
     default: {
+      if (think._.includes(type, 'Collection')) {
+        type = type.split('Collection')[0]
+      }
       const et = await think.model('entrytypes', { spaceId: spaceId }).where({
-        name: type
+        name: type.toString()
       }).find()
-
       if (think.isEmpty(et)) {
         return []
       }
 
       const entries = await think.model('entries', { spaceId: spaceId }).where({ typeId: et.id }).select()
+
       const ids = think._.map(entries, 'id')
       // 临时测试处理
       const entryList = await think.model('entryversions', { spaceId: spaceId }).where(
@@ -111,7 +114,7 @@ const readEntry = async function ({ type, id, spaceId }) {
       const entryModel = think.model('entries', { spaceId: spaceId })
       const entryVersionModel = think.model('entryversions', { spaceId: spaceId })
       let entryData = await entryModel.where({id: id}).find()
-      if (entryData.postDate !== null) {
+      if (entryData.publishAt !== null) {
         let entryVersionData = await entryVersionModel.where({
           entryId: entryData.id,
           updatedAt: entryData.publishAt

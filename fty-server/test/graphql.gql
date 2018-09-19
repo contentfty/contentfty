@@ -1,0 +1,124 @@
+mutation{
+    saveEntrytype(entrytype:{
+        name: "Blog Post"
+        fields:[
+            {
+                name:"title"
+                title: "标题"
+                type:TEXT_SHORT
+            },
+            {
+                name:"slug"
+                title:"标识"
+                type:TEXT_SHORT
+            },
+            {
+                name: "Hero image"
+                title: "题图"
+                type: MEDIA
+            },
+            {
+                name: "body"
+                title: "内容"
+                type:TEXT_LONG
+            },
+            {
+                name: "Author"
+                title: "作者"
+                type:REFERENCE
+            },
+            {
+                name:"publishDate"
+                title:"发布时间"
+                type:DATE
+            },
+            {
+                name:"tags"
+                title:"标签"
+                type:ARRAY
+                items:{
+                    type:TEXT_SHORT
+                    validations:[
+                        {
+                            in:[
+                                "general"
+                                "javascript"
+                                "static-sites"
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }){
+        fields{
+            title
+        }
+    }
+
+    saveEntrytype(entrytype:{
+        name: "Author"
+        fields:[
+            {
+                name:"name"
+                title: "人物名称"
+                type:SHORT_TEXT
+            },
+            {
+                name:"title"
+                title:"人物标题"
+                type:SHORT_TEXT
+            },
+            {
+                name: "company"
+                title: "所在公司"
+                type: SHORT_TEXT
+            },
+            {
+                name: "short bio"
+                title: "简历"
+                type:LONG_TEXT
+            },
+            {
+                name: "email"
+                title: "邮箱"
+                type:SHORT_TEXT
+                validations:[{
+                    regexp:{
+                        pattern:"^\/w[\/w.-]*@([\/w-]+\/.)+[\/w-]+$"
+                    }
+                }]
+            },
+            {
+                name:"phone"
+                title:"手机"
+                type:SHORT_TEXT
+                validations:[{
+                    regexp:{
+                        pattern:"\/^(13[0-9]|14[579]|15[0-3,5-9]|16[6]|17[0135678]|18[0-9]|19[89])\\d{8}$"
+                    }
+                }]
+            },
+            {
+                name:"github"
+                title: "Github"
+                type:SHORT_TEXT
+            },
+            {
+                name:"weibo"
+                title: "Weibo"
+                type:SHORT_TEXT
+            },
+            {
+                name: "avatar"
+                title: "头像"
+                type:MEDIA
+            }
+        ]
+    }){
+        fields{
+            title
+        }
+    }
+}
+

@@ -596,26 +596,40 @@ module.exports = class extends think.Service {
       }
     } else {  // todo
       const entryModel = await think.model('entries', {spaceId: spaceId})
-      const entryExists = await entryModel.where({id: entryInput.id}).find()
-      if (think.isEmpty(entryExists)) {
-        throw new Error('Entry does not exists!')
-      }
+      // const entryExists = await entryModel.where({id: entryInput.id}).find()
+      // if (think.isEmpty(entryExists)) {
+      //   throw new Error('Entry does not exists!')
+      // }
 
       const versionModel = await think.model('entryversions', {spaceId: spaceId})
       const entryversionsExists = await versionModel.where({entryId: entryInput.id}).order('num DESC').limit(1).find()
       if (think.isEmpty(entryversionsExists)) {
         throw new Error('Entry Versions does not exists!')
       }
-      await versionModel.add({
+      const updatedAt = dateNow()
+      const affectedRows = await versionModel.add({
         entryId: entryInput.id,
         num: entryversionsExists.num + 1,
         fields: JSON.stringify(entryInput),
-        createdBy: user.id,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
+        updatedBy: user.id,
+        updatedAt: updatedAt,
+        createdAt: updatedAt
       })
-
-      return {id: entryInput.id}
+      if (affectedRows > 0) {
+        await entryModel.where({id: entryInput.id}).update({
+          id: entryInput.id,
+          publishAt: updatedAt
+        })
+      }
+      // let entryData = await entryModel.where({id: id}).find()
+      // if (entryData.publishAt !== null) {
+      let entryVersionData = await versionModel.where({
+        entryId: entryInput.id,
+        updatedAt: updatedAt
+      }).find()
+      return think._.assign(JSON.parse(entryVersionData.fields), {id: entryVersionData.entryId})
+      // }
+      // return {id: entryInput.id}
     }
   }
 

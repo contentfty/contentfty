@@ -17,7 +17,7 @@ const {writeEntry} = require('./db/write')
 const {deleteEntry} = require('./db/delete')
 const {readModel, writeModel} = require('./db/model')
 const LinkETC = EnumTypeComposer.create({
-  name: 'LinkTypeEnum',
+  name: 'SysTypeEnum',
   values: {
     ASSET: {value: 'Asset'},
     ENTRY: {value: 'Entry'},
@@ -103,6 +103,10 @@ const FieldITC = InputTypeComposer.create({
   name: 'EntryTypeFieldInput',
   description: '内容字段',
   fields: {
+    id: {
+      type: 'String',
+      description: '字段唯一标识'
+    },
     type: {
       type: FieldETC.getTypeNonNull(),
       description: '字段类型'
@@ -145,11 +149,22 @@ const FieldITC = InputTypeComposer.create({
     }
   }
 })
-// const fieldName = 'type'
-// const FieldInputType = new GraphQLInputObjectType({
-//
-// })
 
+// 系统信息输入
+const SysITC = InputTypeComposer.create({
+  name: 'SysInfoInput',
+  description: '系统内置格式内容',
+  fields: {
+    type: {
+      type: LinkETC,
+      description: '系统内置类型'
+    },
+    id: {
+      type: 'String',
+      description: '唯一标识'
+    }
+  }
+})
 const ArrayInputType = new GraphQLInputObjectType({
   name: 'ArrayInput',
   fields: () => ({
@@ -212,16 +227,18 @@ const buildInput = field => {
     case 'Text':
     case 'Date':
       return {
-        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString,
+        description: field.description ? field.description : field.type
       }
     case 'Boolean':
       return {
-        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString,
+        description: field.description ? field.description : field.type
       }
     case 'Link':
       return {
-        type: field.required ? new GraphQLNonNull(LinkInputType) : LinkInputType
-
+        type: field.required ? new GraphQLNonNull(LinkInputType) : LinkInputType,
+        description: field.description ? field.description : field.type
       }
 
     case 'Array': {
@@ -229,18 +246,21 @@ const buildInput = field => {
         if (field.items.linkType === 'Field') {
           return {
             type: field.required ? new GraphQLNonNull(new GraphQLList(FieldITC.getType()))
-              : new GraphQLList(FieldITC.getType())
+              : new GraphQLList(FieldITC.getType()),
+            description: field.description ? field.description : field.type
           }
         }
       }
       return {
         type: field.required ? new GraphQLNonNull(new GraphQLList(FieldITC.getType()))
-          : new GraphQLList(FieldITC.getType())
+          : new GraphQLList(FieldITC.getType()),
+        description: field.description ? field.description : field.type
       }
     }
     default:
       return {
-        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString
+        type: field.required ? new GraphQLNonNull(GraphQLString) : GraphQLString,
+        description: field.description ? field.description : field.type
       }
   }
 }
@@ -261,7 +281,8 @@ const buildInputs = async function () {
       name: `${structure.name}Input`,
       fields: () => {
         const resultFields = {
-          id: {type: GraphQLID}
+          // id: {type: GraphQLID}
+          // sys: {type: SysITC.getType()}
         }
         // if (structure.type) {
         //   resultFields._value_ = buildInput(structure)
@@ -281,7 +302,7 @@ const buildInputs = async function () {
 
 const buildDeleteObject = key =>
   new GraphQLObjectType({
-    name: `_DeleteObject${key}_`,
+    name: `${key}`,
     fields: {
       code: {type: GraphQLInt},
       message: {type: GraphQLString}
@@ -296,9 +317,60 @@ const tokenType = new GraphQLObjectType({
 });
 
 const buildMutation = async function (ObjectTypes) {
-  const InputType = await buildInputs()
+  const InputType = await
+    buildInputs()
   const MutationObjects = {}
 
+  const _buildMutationObjects = (objects, key, inputs) => {
+    const suffixMethods = [
+      'Create',
+      'CreateMany',
+      'UpdateById',
+      'UpdateOne',
+      'UpdateMany',
+      'RemoveOne',
+      'RemoveById',
+      'RemoveMany'
+    ]
+    for (let method of suffixMethods) {
+      if (method.includes('Create')) {
+        objects[`${think._.camelCase(key)}${method}`] = {
+          type: ObjectTypes[key],
+          args: {...inputs},
+          resolve: async (root, params, context) => {
+            try {
+              if (key === 'Schema') {
+                return []
+                // return await writeModel(params)
+              }
+              return await writeEntry(key, params[key.toLowerCase()], context)
+            } catch (error) {
+              throw error
+            }
+          }
+        }
+      }
+      if (method.includes('Remove')) {
+        MutationObjects[`${think._.camelCase(key)}${method}`] = {
+          type: buildDeleteObject(`${method}${key}Payload`),
+          args: {...inputs},
+          resolve: async (root, params, context) => {
+            try {
+              if (key === 'Schema') {
+                return []
+              }
+              return await deleteEntry(key, params[key.toLowerCase()], context)
+            } catch (error) {
+              throw error
+            }
+          }
+        }
+      }
+      if (method.includes('Update')) {
+      }
+    }
+
+  }
   const mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: () => {
@@ -348,47 +420,134 @@ const buildMutation = async function (ObjectTypes) {
         }
       }
 
-      // MutationObjects.upload = {
-      //   name: 'UploadProcess',
-      //   args: {
-      //
-      //   }
-      // }
       Object.keys(InputType).forEach(key => {
-        const inputs = {}
-        inputs[key.toLowerCase()] = {type: InputType[key]}
-        MutationObjects[`save${think._.capitalize(key)}`] = {
-          type: ObjectTypes[key],
-          args: {...inputs},
-          resolve: async (root, params, context) => {
-            try {
-              if (key === 'Schema') {
-                return []
-                // return await writeModel(params)
-              }
-              // const user = context
-              // return []
-              return await writeEntry(key, params[key.toLowerCase()], context)
-            } catch (error) {
-              throw error
-            }
-          }
+        const inputs = {
+          // sys: {type: SysITC.getType()}
+          recordId: {type: GraphQLID}
         }
 
-        MutationObjects[`delete${think._.capitalize(key)}`] = {
-          type: buildDeleteObject(key),
-          args: {...inputs},
-          resolve: async (root, params, context) => {
-            try {
-              if (key === 'Schema') {
-                return []
-              }
-              return await deleteEntry(key, params[key.toLowerCase()], context)
-            } catch (error) {
-              throw error
-            }
-          }
-        }
+        inputs.record = {type: new GraphQLNonNull(InputType[key])}
+        inputs.type = {type: new GraphQLNonNull(LinkETC.getType())}
+        _buildMutationObjects(MutationObjects, key, inputs)
+        /*        MutationObjects[`${think._.camelCase(key)}Create`] = {
+                  type: ObjectTypes[key],
+                  args: {...inputs},
+                  resolve: async (root, params, context) => {
+                    try {
+                      if (key === 'Schema') {
+                        return []
+                        // return await writeModel(params)
+                      }
+                      return await writeEntry(key, params[key.toLowerCase()], context)
+                    } catch (error) {
+                      throw error
+                    }
+                  }
+                }
+                MutationObjects[`${key}CreateMany`] = {
+                  type: ObjectTypes[key],
+                  args: {...inputs},
+                  resolve: async (root, params, context) => {
+                    try {
+                      if (key === 'Schema') {
+                        return []
+                        // return await writeModel(params)
+                      }
+                      return await writeEntry(key, params[key.toLowerCase()], context)
+                    } catch (error) {
+                      throw error
+                    }
+                  }
+                }
+                MutationObjects[`${key}UpdateById`] = {
+                  type: ObjectTypes[key],
+                  args: {...inputs},
+                  resolve: async (root, params, context) => {
+                    try {
+                      if (key === 'Schema') {
+                        return []
+                        // return await writeModel(params)
+                      }
+                      return await writeEntry(key, params[key.toLowerCase()], context)
+                    } catch (error) {
+                      throw error
+                    }
+                  }
+                }
+                MutationObjects[`${key}UpdateOne`] = {
+                  type: ObjectTypes[key],
+                  args: {...inputs},
+                  resolve: async (root, params, context) => {
+                    try {
+                      if (key === 'Schema') {
+                        return []
+                        // return await writeModel(params)
+                      }
+                      return await writeEntry(key, params[key.toLowerCase()], context)
+                    } catch (error) {
+                      throw error
+                    }
+                  }
+                }
+
+                MutationObjects[`${key}UpdateMany`] = {
+                  type: ObjectTypes[key],
+                  args: {...inputs},
+                  resolve: async (root, params, context) => {
+                    try {
+                      if (key === 'Schema') {
+                        return []
+                        // return await writeModel(params)
+                      }
+                      return await writeEntry(key, params[key.toLowerCase()], context)
+                    } catch (error) {
+                      throw error
+                    }
+                  }
+                }
+
+                MutationObjects[`${key}RemoveById`] = {
+                  type: buildDeleteObject(key),
+                  args: {...inputs},
+                  resolve: async (root, params, context) => {
+                    try {
+                      if (key === 'Schema') {
+                        return []
+                      }
+                      return await deleteEntry(key, params[key.toLowerCase()], context)
+                    } catch (error) {
+                      throw error
+                    }
+                  }
+                // }
+                // MutationObjects[`${key}RemoveByOne`] = {
+                //   type: buildDeleteObject(key),
+                //   args: {...inputs},
+                //   resolve: async (root, params, context) => {
+                //     try {
+                //       if (key === 'Schema') {
+                //         return []
+                //       }
+                //       return await deleteEntry(key, params[key.toLowerCase()], context)
+                //     } catch (error) {
+                //       throw error
+                //     }
+                //   }
+                // }
+                // MutationObjects[`${key}RemoveByMany`] = {
+                //   type: buildDeleteObject(key),
+                //   args: {...inputs},
+                //   resolve: async (root, params, context) => {
+                //     try {
+                //       if (key === 'Schema') {
+                //         return []
+                //       }
+                //       return await deleteEntry(key, params[key.toLowerCase()], context)
+                //     } catch (error) {
+                //       throw error
+                //     }
+                //   }
+                }*/
 
       })
       return MutationObjects

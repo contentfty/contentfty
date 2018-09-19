@@ -1,37 +1,7 @@
 [
   {
-    "name": "Sys",
-    "fields": [
-      {
-        "name": "id",
-        "type": "Symbol",
-        "required": true,
-        "validations": []
-      },
-      {
-        "name": "spaceId",
-        "type": "Symbol",
-        "required": false
-      },
-      {
-        "name": "environmentId",
-        "type": "Symbol",
-        "required": false
-      }
-    ]
-  },
-  {
     "name": "User",
     "fields": [
-      {
-        "name": "sys",
-        "type": "Link",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false,
-        "linkType": "Sys"
-      },
       {
         "name": "orgId",
         "apiName": "orgId",
@@ -285,9 +255,21 @@
     "name": "Field",
     "fields": [
       {
+        "name": "id",
+        "apiName": "id",
+        "title": "字段唯一标识，一般为名称",
+        "description": "字段唯一标识, 一般为名称",
+        "type": "Symbol",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false
+      },
+      {
         "name": "name",
         "apiName": "name",
         "title": "字段名称",
+        "description": "字段名称",
         "type": "Symbol",
         "localized": false,
         "required": false,
@@ -298,6 +280,7 @@
         "name": "title",
         "apiName": "title",
         "title": "字段标题",
+        "description": "字段标题",
         "type": "Symbol",
         "localized": false,
         "required": false,
@@ -308,6 +291,7 @@
         "name": "typeId",
         "apiName": "typeId",
         "title": "内容类型",
+        "description": "字段所属的内容类型",
         "type": "Symbol",
         "localized": false,
         "required": false,
@@ -318,6 +302,7 @@
         "name": "instructions",
         "apiName": "instructions",
         "title": "字段说明",
+        "description": "字段说明",
         "type": "Symbol",
         "localized": false,
         "required": false,
@@ -328,6 +313,7 @@
         "name": "type",
         "apiName": "type",
         "title": "字段类型",
+        "description": "字段类型",
         "type": "Symbol",
         "localized": false,
         "required": false,
@@ -338,6 +324,7 @@
         "name": "unique",
         "apiName": "unique",
         "title": "是否唯一",
+        "description": "是否唯一",
         "type": "Boolean",
         "localized": false,
         "required": false,
@@ -348,6 +335,7 @@
         "name": "required",
         "apiName": "required",
         "title": "是否必需",
+        "description": "是否必需",
         "type": "Boolean",
         "localized": false,
         "required": false,
@@ -358,6 +346,7 @@
         "name": "disabled",
         "apiName": "disabled",
         "title": "是否可用",
+        "description": "是否可用",
         "type": "Boolean",
         "localized": false,
         "required": false,
@@ -368,6 +357,7 @@
         "name": "validations",
         "apiName": "validations",
         "title": "较验",
+        "description": "较验规则",
         "type": "Object",
         "localized": false,
         "required": false,
@@ -378,27 +368,8 @@
         "name": "settings",
         "apiName": "settings",
         "title": "字段配置",
+        "description": "字段配置",
         "type": "Object",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false
-      },
-      {
-        "name": "createdAt",
-        "apiName": "createdAt",
-        "title": "创建时间",
-        "type": "Date",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false
-      },
-      {
-        "name": "updatedAt",
-        "apiName": "updatedAt",
-        "title": "更新时间",
-        "type": "Date",
         "localized": false,
         "required": false,
         "validations": [],
@@ -407,11 +378,45 @@
     ]
   },
   {
-    "name": "EntryType",
+    "name": "ContentType",
     "fields": [
+      {
+        "name": "id",
+        "apiName": "id",
+        "title": "条目类型唯一标识",
+        "description": "条目类型唯一标识, 一般为名称",
+        "type": "Symbol",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false
+      },
       {
         "name": "name",
         "apiName": "name",
+        "description": "条目类型名称",
+        "title": "条目类型名称",
+        "type": "Symbol",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false
+      },
+      {
+        "name": "displayField",
+        "apiName": "displayField",
+        "description": "默认显示的字段",
+        "title": "条目类型名称",
+        "type": "Symbol",
+        "localized": false,
+        "required": false,
+        "validations": [],
+        "disabled": false
+      },
+      {
+        "name": "description",
+        "apiName": "description",
+        "description": "内容类型描述",
         "title": "条目类型名称",
         "type": "Symbol",
         "localized": false,
@@ -423,6 +428,7 @@
         "name": "fields",
         "apiName": "fields",
         "title": "内容类型字段",
+        "description": "内容类型字段",
         "type": "Array",
         "localized": false,
         "required": false,
@@ -433,48 +439,6 @@
           "linkType": "Field",
           "validations": []
         }
-      },
-      {
-        "name": "createdBy",
-        "apiName": "createdBy",
-        "title": "创建者",
-        "type": "Link",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false,
-        "linkType": "User"
-      },
-      {
-        "name": "updatedBy",
-        "apiName": "updatedBy",
-        "title": "更新者",
-        "type": "Link",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false,
-        "linkType": "User"
-      },
-      {
-        "name": "createdAt",
-        "apiName": "createdAt",
-        "title": "创建时间",
-        "type": "Date",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false
-      },
-      {
-        "name": "updatedAt",
-        "apiName": "updatedAt",
-        "title": "更新时间",
-        "type": "Date",
-        "localized": false,
-        "required": false,
-        "validations": [],
-        "disabled": false
       }
     ]
   },

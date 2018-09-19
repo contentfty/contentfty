@@ -9,6 +9,9 @@ const emptyField = function (field) {
   return null
 }
 const writeEntry = async function (type, data, context) {
+  console.log(type)
+  // console.log(think._.capitalize(type))
+  console.log('d-x--x-x-x-----------')
   switch (type) {
     case 'User': {
       return await fty.saveUser(data)
@@ -19,7 +22,7 @@ const writeEntry = async function (type, data, context) {
     case 'Space': {
       return await fty.saveSpace(data, context.user)
     }
-    case 'EntryType': {
+    case 'ContentType': {
       return await fty.saveEntryType(data, context.user, context.spaceId)
     }
     case 'Entry': {
