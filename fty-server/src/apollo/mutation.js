@@ -28,16 +28,17 @@ const LinkETC = EnumTypeComposer.create({
 const FieldETC = EnumTypeComposer.create({
   name: 'FieldTypeEnum',
   values: {
-    SYMBOL: {value: 'symbol', description: '短文本, 一般用于标题、名称等, 最大长度 256字符'},
-    TEXT: {value: 'text', description: '长文本，文章段落、大量文本, 最大长度  50,000字符'},
+    SHORT_TEXT: {value: 'symbol', description: '短文本, 一般用于标题、名称等; 最大长度 256字符'},
+    LONG_TEXT: {value: 'text', description: '长文本，文章段落、大量文本, 最大长度  50,000字符'},
     INTEGER: {value: 'integer', description: '整型数字, -253 253'},
-    NUMBER: {value: 'number'},
-    DATE: {value: 'date'},
-    LOCATION: {value: 'location'},
-    BOOLEAN: {value: 'boolean'},
-    LINK: {value: 'link'},
-    ARRAY: {value: 'array'},
-    OBJECT: {value: 'object'}
+    DECIMAL: {value: 'number', description: '浮点数字'},
+    DATE: {value: 'date', description: '日期, | "2018-11-06T09:45:27"'},
+    LOCATION: {value: 'location', description: '地理位置座标, | {"lat": 52.5208, "lon": 13.4049}'},
+    BOOLEAN: {value: 'boolean', description: '状态值，如：真或假，是或否 | true'},
+    MEDIA: {value: 'link', description: '链接一个媒体资源，如：图片、文件等'},
+    REFERENCE: {value: 'link', description: '链接一个条目，如：文章的作者'},
+    ARRAY: {value: 'array', description: '列表，如课程的多个章节关联  | ["name1", "name2", ...]'},
+    JSON_OBJECT: {value: 'object', description: '一些自定义的数据以 JSON 格式存储 | {"foo": "bar"}'}
   }
 })
 
@@ -63,29 +64,41 @@ const LinkInputType = new GraphQLInputObjectType({
   })
 })
 
-const RegexpITC = InputTypeComposer.create({
+const _RegexpITC = InputTypeComposer.create({
   name: 'RegexpInput',
   fields: {
     pattern: 'String!'
   }
 })
 
-const SizeITC = InputTypeComposer.create({
+const _SizeITC = InputTypeComposer.create({
   name: 'Size',
   fields: {
     min: 'Int',
     max: 'Int'
   }
 })
+// 验证输入
 const ValidationITC = InputTypeComposer.create({
   name: 'ValidationInput',
   fields: {
-    size: SizeITC,
-    regexp: RegexpITC,
+    size: _SizeITC,
+    regexp: _RegexpITC,
+    in: '[String]',
     message: 'String'
   }
   // types: [RegexpITC.getType(), SizeITC.getType()]
 })
+
+const ArrayItemITC = InputTypeComposer.create({
+  name: "ArrayItemInput",
+  fields: {
+    type: FieldETC,
+    validations: [ValidationITC]
+  }
+})
+
+// 字段操作
 const FieldITC = InputTypeComposer.create({
   name: 'EntryTypeFieldInput',
   description: '内容字段',
@@ -121,6 +134,10 @@ const FieldITC = InputTypeComposer.create({
     validations: {
       type: [ValidationITC.getType()],
       description: '字段的验证规则'
+    },
+    items: {
+      type: ArrayItemITC,
+      description: '数组元素规则'
     },
     settings: {
       type: 'JSON',

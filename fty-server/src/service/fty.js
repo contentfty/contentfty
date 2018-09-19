@@ -164,11 +164,19 @@ module.exports = class extends think.Service {
         item.createdAt = dateNow()
         item.updatedAt = dateNow()
       }
+      for (let entrytypeField of entrytypeInput.fields) {
+        entrytypeField.name = think._.camelCase(entrytypeField.name)
+        if (entrytypeField.validations) {
+          entrytypeField.validations = JSON.stringify(entrytypeField.validations)
+        } else {
+          entrytypeField.validations = JSON.stringify(new Array())
+        }
+      }
       const fieldIds = await fieldsModel.addMany(entrytypeInput.fields)
 
       const saveParams = {
         id: contentTypeID,
-        name: entrytypeInput.name,
+        name: think._.camelCase(entrytypeInput.name),
         fields: JSON.stringify(think._.map(entrytypeInput.fields, 'id')),
         createdBy: user.id,
         updatedBy: user.id,

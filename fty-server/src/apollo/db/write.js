@@ -20,7 +20,6 @@ const writeEntry = async function (type, data, context) {
       return await fty.saveSpace(data, context.user)
     }
     case 'EntryType': {
-      console.log(data)
       return await fty.saveEntryType(data, context.user, context.spaceId)
     }
     case 'Entry': {
