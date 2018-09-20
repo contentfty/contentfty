@@ -8,6 +8,7 @@ const {
   GraphQLBoolean,
   GraphQLInt,
   GraphQLNonNull,
+  GraphQLEnumType,
   GraphQLInputObjectType
 } = require('graphql')
 // const GraphQLJSON = require('graphql-type-json')
@@ -89,7 +90,7 @@ const buildObjects = async function (spaceId) {
       return [
         `${structure.name}`,
         new GraphQLObjectType({
-          name: `${structure.name}`,
+          name: `${think._.upperFirst(structure.name)}`,
           // interfaces: [EntryInterface],
           fields: () => ({
             id: {type: GraphQLID},
@@ -174,6 +175,27 @@ const buildFilters = async function () {
   return InputType
 }
 
+// const buildSortEInput = async function () {
+//   const InputType = {}
+//   const model = await readModel('8784tvwc6dpm')
+//   for (const structure of model) {
+//     InputType[`${think._.camelCase(structure.name)}`] = new GraphQLEnumType({
+//       name: `Sort${think._.camelCase(structure.name)}`,
+//       fields: () => {
+//         const resultFields = {
+//           id: {type: GraphQLID}
+//         }
+//         Object.assign(
+//           resultFields,
+//           fromPairs(structure.fields.map(field => [field.name, buildFilterInput(field)]))
+//         )
+//         return resultFields
+//       }
+//     })
+//   }
+//   return InputType
+// }
+
 const buildQuery = async function (ObjectTypes, spaceId) {
   // 构建全部查询条件输入类型
   const filterType = await buildFilters()
@@ -203,75 +225,84 @@ const buildQuery = async function (ObjectTypes, spaceId) {
         }
       }
       const _getQueryArgs = (method, value) => {
-        if (method === 'ById') {
-          return {
-            id: {
-              type: GraphQLID
+        switch (method) {
+          case 'ById': {
+            return {
+              id: {
+                type: GraphQLID
+              }
             }
           }
-        }
-        if (method === 'ByIds') {
-          return {
-            id: {
-              type: GraphQLID
-            },
-            limit: {
-              type: GraphQLInt,
-              default: 1000
+          case 'ByIds': {
+            return {
+              id: {
+                type: GraphQLID
+              },
+              limit: {
+                type: GraphQLInt,
+                default: 1000
+              }
             }
           }
-        }
-        // TODO: WIP
-        if (method === 'One') {
-          return {
-            // FilterFindOneXXXInput
-            filter: {type: filterType[think._.camelCase(value)]},
-            skip: {
-              type: GraphQLInt
+          case 'One': {
+            return {
+              // FilterFindOneXXXInput
+              filter: {type: filterType[think._.camelCase(value)]},
+              skip: {
+                type: GraphQLInt
+              }
             }
           }
-        }
-        if (method === 'Many') {
-          return {
-            // FilterFindOneXXXInput
-            filter: {type: filterType[think._.camelCase(value)]},
-            skip: {type: GraphQLInt},
-            limit: {
-              type: GraphQLInt,
-              default: 1000
+          case 'Many': {
+            return {
+              // FilterFindOneXXXInput
+              filter: {type: filterType[think._.camelCase(value)]},
+              skip: {type: GraphQLInt},
+              limit: {
+                type: GraphQLInt,
+                default: 1000
+              }
             }
           }
-        }
-        if (method === 'Total') {
-          return {
-            // FilterFindOneXXXInput
-            filter: {type: filterType[think._.camelCase(value)]},
+          case 'Total': {
+            return {
+              // FilterFindOneXXXInput
+              filter: {type: filterType[think._.camelCase(value)]},
+            }
           }
-        }
-        if (method === 'Pagination') {
-          return {
-            page: {
-              type: GraphQLInt
-            },
-            pageSize:{
-              type: GraphQLInt,
-              default: 20
-            },
-            // FilterFindOneXXXInput
-            filter: {type: filterType[think._.camelCase(value)]},
+          case 'Pagination': {
+            return {
+              page: {
+                type: GraphQLInt
+              },
+              pageSize: {
+                type: GraphQLInt,
+                default: 20
+              },
+              filter: {type: filterType[think._.camelCase(value)]},
+            }
           }
         }
       }
-      const pairs = map(ObjectTypes, (value, key) => {
+      const pairs = map(ObjectTypes, (value, type) => {
           const queryMethods = []
           suffixMethods.forEach((method) => {
             // if (think._.indexOf(['ById', 'ByIds', 'One'], method)) {
             queryMethods.push([
-              `${think._.camelCase(key)}${method}`,
+              `${think._.camelCase(type)}${method}`,
               {
                 type: _getReturnType(method, value),
                 args: _getQueryArgs(method, value),
-                resolve: (root, {id}) => read(key, id, spaceId)
+                resolve: (root, args) => {
+                  /**
+                   * @param type 内容类型
+                   * @param spaceId 内容空间标识
+                   * @param method 查询方式
+                   * @param args 查询参数
+                   * @returns {*}
+                   */
+                  return read(type, spaceId, method, args)
+                }
               }
             ])
             // }

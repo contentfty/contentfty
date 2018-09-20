@@ -5,9 +5,31 @@ const { isObject, isArray, toPairs } = require('lodash');
 const { readType, readEntry } = require('./db/read');
 const { inspectEntry, graphqlQuerySerialize } = require('./db/inspect');
 
-const read = async function (type, id = null, spaceId = null, skip, limit, where) {
+const read = async function (type, spaceId, method, args) {
+  const suffixMethods = [
+    'ById',
+    'ByIds',
+    'One',
+    'Many',
+    'Total',
+    'Pagination'
+  ]
+  switch (method) {
+    case 'ById': {
+      return await readEntry({ type, spaceId, id: args.id})
+    }
+    case 'ByIds': {}
+    case 'One': {}
+    case 'Many': {}
+    case 'Total': {}
+    case 'Pagination': {}
+  }
+  // console.log(type)
+  // console.log(spaceId)
+  // console.log(method)
+  // console.log(args)
   // if ID Query single object els All
-  return id === null ? await readType({ type, spaceId, skip, limit, where }) : [await readEntry({ type, id, spaceId })];
+  // return id === null ? await readType({ type, spaceId, skip, limit, where }) : [await readEntry({ type, id, spaceId })];
 }
 
 // const readCollection = function (type, spaceId, skip, limit) {

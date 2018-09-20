@@ -17,8 +17,10 @@ const readModel = async function (spaceId) {
   // 查询 entryTypes model
   const entryTypesModel = think.model('entrytypes', {spaceId: spaceId})
   const entryTypes = await entryTypesModel.getAll()
-  return [...sourcesTypes, ...entryTypes]
-  // return [...sourcesTypes]
+  if (entryTypes) {
+    return [...entryTypes]
+  }
+  return [...sourcesTypes]
 }
 
 /**

@@ -25,13 +25,6 @@ const {buildMutation} = require('./mutation')
 //  *!/
 const buildSchema = async function (spaceId) {
   const objectTypes = await buildObjects(spaceId)
-  console.log('x-x-x-x--x-x-x---')
-  console.log('x-x-x-x--x-x-x---')
-  console.log('x-x-x-x--x-x-x---')
-  console.log('x-x-x-x--x-x-x---')
-  console.log('x-x-x-x--x-x-x---')
-  console.log('x-x-x-x--x-x-x---')
-  console.log(objectTypes)
   const queryType = await buildQuery(objectTypes, spaceId)
   const mutationType = await buildMutation(objectTypes, spaceId)
   const schema = new GraphQLSchema({
