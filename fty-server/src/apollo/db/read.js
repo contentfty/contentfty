@@ -45,11 +45,11 @@ const readType = async function ({ type, spaceId, skip, limit, where }) {
       return await think.model('fields', { spaceId: spaceId }).select()
     }
     default: {
-      if (think._.includes(type, 'Collection')) {
-        type = type.split('Collection')[0]
-      }
+      // if (think._.includes(type, 'Collection')) {
+      //   type = type.split('Collection')[0]
+      // }
       const et = await think.model('entrytypes', { spaceId: spaceId }).where({
-        name: type.toString()
+        id: type.toString()
       }).find()
       if (think.isEmpty(et)) {
         return []

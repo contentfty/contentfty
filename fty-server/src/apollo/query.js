@@ -11,41 +11,11 @@ const {
   GraphQLEnumType,
   GraphQLInputObjectType
 } = require('graphql')
-// const GraphQLJSON = require('graphql-type-json')
 const {readModel, getTypesNames} = require('./db/model')
 const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
-// const {entryTypes} = require('./db/read');
-
-// const buildSchemaObject = function () {
-//   return new GraphQLObjectType({
-//     name: 'Schema',
-//     fields: {name: {type: GraphQLString}}
-//   })
-// }
 
 const buildObjects = async function (spaceId) {
   const model = await readModel(spaceId)
-  // const modelTypes = getTypesNames(model)
-
-  const EntryInterface = new GraphQLInterfaceType({
-    name: 'EntryInterface',
-    fields: {
-      id: {type: GraphQLID},
-      // _id_: {type: GraphQLID},
-      // _newId_: {type: GraphQLID},
-      _type_: {type: GraphQLString},
-      _tree_: {type: GraphQLString}
-    },
-    resolveType: value => ObjectTypes[value._type_]
-  })
-  // const KeyValuePair = new GraphQLObjectType({
-  //   name: 'KeyValuePair',
-  //   fields: () => ({
-  //     _key_: {type: GraphQLString},
-  //     _value_: {type: EntryInterface},
-  //     _list_: {type: new GraphQLList(EntryInterface)}
-  //   })
-  // });
 
   const buildField = field => {
     const fieldType = field.type;
@@ -88,9 +58,9 @@ const buildObjects = async function (spaceId) {
   const queryTypes = fromPairs(
     model.map(structure => {
       return [
-        `${structure.name}`,
+        `${structure.id}`,
         new GraphQLObjectType({
-          name: `${think._.upperFirst(structure.name)}`,
+          name: `${think._.upperFirst(structure.id)}`,
           // interfaces: [EntryInterface],
           fields: () => ({
             id: {type: GraphQLID},
@@ -158,8 +128,8 @@ const buildFilters = async function () {
   const InputType = {}
   const model = await readModel('8784tvwc6dpm')
   for (const structure of model) {
-    InputType[`${think._.camelCase(structure.name)}`] = new GraphQLInputObjectType({
-      name: `${think._.camelCase(structure.name)}InputFilter`,
+    InputType[`${think._.camelCase(structure.id)}`] = new GraphQLInputObjectType({
+      name: `${think._.camelCase(structure.id)}InputFilter`,
       fields: () => {
         const resultFields = {
           id: {type: GraphQLID}

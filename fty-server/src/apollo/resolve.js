@@ -6,21 +6,23 @@ const { readType, readEntry } = require('./db/read');
 const { inspectEntry, graphqlQuerySerialize } = require('./db/inspect');
 
 const read = async function (type, spaceId, method, args) {
-  const suffixMethods = [
-    'ById',
-    'ByIds',
-    'One',
-    'Many',
-    'Total',
-    'Pagination'
-  ]
+  // const suffixMethods = [
+  //   'ById',
+  //   'ByIds',
+  //   'One',
+  //   'Many',
+  //   'Total',
+  //   'Pagination'
+  // ]
   switch (method) {
     case 'ById': {
       return await readEntry({ type, spaceId, id: args.id})
     }
     case 'ByIds': {}
     case 'One': {}
-    case 'Many': {}
+    case 'Many': {
+      return await readType({ type, spaceId, skip: args.skip, limit: args.limit})
+    }
     case 'Total': {}
     case 'Pagination': {}
   }

@@ -147,24 +147,24 @@ module.exports = class extends think.Service {
    * 保存内容类型(创建内容类型 and 更新内容类型)
    * @returns {Promise<*>}
    */
-  async saveEntryType (entrytypeInput, user, spaceId) {
-    if (think.isEmpty(entrytypeInput.id)) {
+  async saveEntryType (record, user, spaceId) {
+    // if (think.isEmpty(record.id)) {
       const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
-      const entrytypeExists = await entryTypeModel.where({name: entrytypeInput.name}).find();
+      const entrytypeExists = await entryTypeModel.where({name: record.name}).find();
       if (!think.isEmpty(entrytypeExists)) {
         throw new Error(`${entrytypeInput.name} already exists!`)
       }
-      const contentTypeID = await this.regElement(ElementType.contentType)
+      // const contentTypeID = await this.regElement(ElementType.contentType)
 
       // 保存 Fields
       const fieldsModel = think.model('fields', {spaceId: spaceId})
-      for (let item of entrytypeInput.fields) {
-        item.typeId = contentTypeID
+      for (let item of record.fields) {
+        item.typeId = record.id
         item.id = Generate.id()
         item.createdAt = dateNow()
         item.updatedAt = dateNow()
       }
-      for (let entrytypeField of entrytypeInput.fields) {
+      for (let entrytypeField of record.fields) {
         entrytypeField.name = think._.camelCase(entrytypeField.name)
         if (entrytypeField.validations) {
           entrytypeField.validations = JSON.stringify(entrytypeField.validations)
@@ -172,12 +172,12 @@ module.exports = class extends think.Service {
           entrytypeField.validations = JSON.stringify(new Array())
         }
       }
-      const fieldIds = await fieldsModel.addMany(entrytypeInput.fields)
+      const fieldIds = await fieldsModel.addMany(record.fields)
 
       const saveParams = {
-        id: contentTypeID,
-        name: think._.camelCase(entrytypeInput.name),
-        fields: JSON.stringify(think._.map(entrytypeInput.fields, 'id')),
+        id: record.id,
+        name: think._.camelCase(record.name),
+        fields: JSON.stringify(think._.map(record.fields, 'id')),
         createdBy: user.id,
         updatedBy: user.id,
         createdAt: dateNow(),
@@ -185,19 +185,19 @@ module.exports = class extends think.Service {
       }
       await entryTypeModel.add(saveParams)
       return saveParams
-    } else {
-      const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
-      const entrytypeExists = await entryTypeModel.where({id: entrytypeInput.id}).find()
-      if (think.isEmpty(entrytypeExists)) {
-        throw new Error('Entry Type does not exists!')
-      }
-      entrytypeInput.updatedAt = dateNow()
-      const affectedRows = await entryTypeModel.where({id: entrytypeInput.id}).update(entrytypeInput)
-      if (affectedRows > 0) {
-        return await entryTypeModel.where({id: entrytypeInput.id}).find()
-      }
-      throw new Error('Entry Type update failed!')
-    }
+    // } else {
+    //   const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
+    //   const entrytypeExists = await entryTypeModel.where({id: record.id}).find()
+    //   if (think.isEmpty(entrytypeExists)) {
+    //     throw new Error('Entry Type does not exists!')
+    //   }
+    //   record.updatedAt = dateNow()
+    //   const affectedRows = await entryTypeModel.where({id: record.id}).update(record)
+    //   if (affectedRows > 0) {
+    //     return await entryTypeModel.where({id: record.id}).find()
+    //   }
+    //   throw new Error('Entry Type update failed!')
+    // }
   }
 
   /**
@@ -540,7 +540,7 @@ module.exports = class extends think.Service {
     if (think.isEmpty(entryInput.id)) {
       // 检测内容类型存在
       const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
-      const entrytypeExists = await entrytypeModel.where({name: type}).find()
+      const entrytypeExists = await entrytypeModel.where({id: type}).find()
       if (think.isEmpty(entrytypeExists)) {
         throw new Error('Entry Type does not exists!')
       }
@@ -565,7 +565,7 @@ module.exports = class extends think.Service {
         await draftModel.add({
           name: 'aaa',
           entryId: id,
-          fields: JSON.stringify(entryInput),
+          fields: JSON.stringify(entryInput.record),
           // fields: entryInput, //JSON.stringify({ "title": "php基础", "content": "跑去玩的拉克丝的" }),//entryInput.fields
           createdBy: user.id,
           createdAt: dateNow(),
@@ -579,7 +579,7 @@ module.exports = class extends think.Service {
         await versionModel.add({
           entryId: id,
           num: maxNum ? maxNum + 1 : 1,
-          fields: JSON.stringify(entryInput),
+          fields: JSON.stringify(entryInput.record),
           // fields: entryInput.fields,
           createdBy: user.id,
           createdAt: dateNow(),

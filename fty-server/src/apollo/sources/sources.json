@@ -1,5 +1,6 @@
 [
   {
+    "id": "User",
     "name": "User",
     "fields": [
       {
@@ -129,6 +130,7 @@
     ]
   },
   {
+    "id": "Org",
     "name": "Org",
     "fields": [
       {
@@ -186,6 +188,7 @@
     ]
   },
   {
+    "id": "Space",
     "name": "Space",
     "fields": [
       {
@@ -252,6 +255,7 @@
     ]
   },
   {
+    "id": "Field",
     "name": "Field",
     "fields": [
       {
@@ -378,6 +382,7 @@
     ]
   },
   {
+    "id": "ContentType",
     "name": "ContentType",
     "fields": [
       {
@@ -443,6 +448,7 @@
     ]
   },
   {
+    "id": "Entry",
     "name": "Entry",
     "fields": [
       {

@@ -1,6 +1,6 @@
 /* eslint-disable no-fallthrough,no-undef */
 const _ = require('lodash')
-const {readEntry} = require('./read')
+// const {readEntry} = require('./read')
 const fty = think.service('fty')
 
 const emptyField = function (field) {
@@ -11,7 +11,6 @@ const emptyField = function (field) {
 const writeEntry = async function (type, data, context) {
   console.log(type)
   // console.log(think._.capitalize(type))
-  console.log('d-x--x-x-x-----------')
   switch (type) {
     case 'User': {
       return await fty.saveUser(data)
@@ -23,7 +22,7 @@ const writeEntry = async function (type, data, context) {
       return await fty.saveSpace(data, context.user)
     }
     case 'ContentType': {
-      return await fty.saveEntryType(data, context.user, context.spaceId)
+      return await fty.saveEntryType(data.record, context.user, context.spaceId)
     }
     case 'Entry': {
       return await fty.saveEntry(data, context.user, context.spaceId)
