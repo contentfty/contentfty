@@ -296,7 +296,7 @@ const buildInputs = async function () {
       }
     })
   }
-  InputType.Schema = buildSchemaInput()
+  // InputType.Schema = buildSchemaInput()
   return InputType
 }
 

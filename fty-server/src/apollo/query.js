@@ -1,6 +1,5 @@
 const {map, fromPairs, concat} = require('lodash')
 const {
-  GraphQLScalarType,
   GraphQLObjectType,
   GraphQLInterfaceType,
   GraphQLID,
@@ -8,25 +7,24 @@ const {
   GraphQLString,
   GraphQLBoolean,
   GraphQLInt,
-  GraphQLFloat,
   GraphQLNonNull,
   GraphQLInputObjectType
 } = require('graphql')
-const GraphQLJSON = require('graphql-type-json')
+// const GraphQLJSON = require('graphql-type-json')
 const {readModel, getTypesNames} = require('./db/model')
 const {read, readChild, readChildren, readMap, inspect} = require('./resolve')
-const {entryTypes} = require('./db/read');
+// const {entryTypes} = require('./db/read');
 
-const buildSchemaObject = function () {
-  return new GraphQLObjectType({
-    name: 'Schema',
-    fields: {name: {type: GraphQLString}}
-  })
-}
+// const buildSchemaObject = function () {
+//   return new GraphQLObjectType({
+//     name: 'Schema',
+//     fields: {name: {type: GraphQLString}}
+//   })
+// }
 
 const buildObjects = async function (spaceId) {
   const model = await readModel(spaceId)
-  const modelTypes = getTypesNames(model)
+  // const modelTypes = getTypesNames(model)
 
   const EntryInterface = new GraphQLInterfaceType({
     name: 'EntryInterface',
@@ -39,14 +37,14 @@ const buildObjects = async function (spaceId) {
     },
     resolveType: value => ObjectTypes[value._type_]
   })
-  const KeyValuePair = new GraphQLObjectType({
-    name: 'KeyValuePair',
-    fields: () => ({
-      _key_: {type: GraphQLString},
-      _value_: {type: EntryInterface},
-      _list_: {type: new GraphQLList(EntryInterface)}
-    })
-  });
+  // const KeyValuePair = new GraphQLObjectType({
+  //   name: 'KeyValuePair',
+  //   fields: () => ({
+  //     _key_: {type: GraphQLString},
+  //     _value_: {type: EntryInterface},
+  //     _list_: {type: new GraphQLList(EntryInterface)}
+  //   })
+  // });
 
   const buildField = field => {
     const fieldType = field.type;
@@ -85,14 +83,6 @@ const buildObjects = async function (spaceId) {
         }
     }
   }
-  const suffixMethods = [
-    'ById',
-    'ByIds',
-    'One',
-    'Many',
-    'Total',
-    'Pagination'
-  ]
 
   const queryTypes = fromPairs(
     model.map(structure => {
@@ -140,7 +130,7 @@ const buildObjects = async function (spaceId) {
   // )
   // let ObjectTypes = think._.assign(queryTypes, queryCollection)
   let ObjectTypes = think._.assign(queryTypes)
-  ObjectTypes.Schema = buildSchemaObject()
+  // ObjectTypes.Schema = buildSchemaObject()
   return ObjectTypes
 }
 const buildFilterInput = field => {
@@ -167,8 +157,8 @@ const buildFilters = async function () {
   const InputType = {}
   const model = await readModel('8784tvwc6dpm')
   for (const structure of model) {
-    InputType[structure.name] = new GraphQLInputObjectType({
-      name: `${structure.name}Filter`,
+    InputType[`${think._.camelCase(structure.name)}`] = new GraphQLInputObjectType({
+      name: `${think._.camelCase(structure.name)}InputFilter`,
       fields: () => {
         const resultFields = {
           id: {type: GraphQLID}
@@ -187,7 +177,6 @@ const buildFilters = async function () {
 const buildQuery = async function (ObjectTypes, spaceId) {
   // 构建全部查询条件输入类型
   const filterType = await buildFilters()
-  let queryTypeList = []
   const suffixMethods = [
     'ById',
     'ByIds',
@@ -199,26 +188,97 @@ const buildQuery = async function (ObjectTypes, spaceId) {
   const query = new GraphQLObjectType({
     name: 'Query',
     fields: () => {
-        const pairs = map(ObjectTypes, (value, key) => {
-            // 如何 1 变成 4
-            const queryMethods = []
-            suffixMethods.forEach((method) => {
-              queryMethods.push([
-                `${think._.camelCase(key)}${method}`,
-                {
-                  type: new GraphQLList(value),
-                  args: {
-                    id: {
-                      type: GraphQLID
-                    }
-                  },
-                  resolve: (root, {id}) => read(key, id, spaceId)
-                }
-              ])
-            })
-            return think._.concat(queryMethods)
+      const _getReturnType = (method, value) => {
+        if (method === 'ById' || method === 'ByIds' || method === 'One') {
+          return value
+        }
+        if (method === 'Many') {
+          return new GraphQLList(value)
+        }
+        if (method === 'Total') {
+          return GraphQLInt
+        }
+        if (method === 'Pagination') {
+          return new GraphQLList(value)
+        }
+      }
+      const _getQueryArgs = (method, value) => {
+        if (method === 'ById') {
+          return {
+            id: {
+              type: GraphQLID
+            }
           }
-        )
+        }
+        if (method === 'ByIds') {
+          return {
+            id: {
+              type: GraphQLID
+            },
+            limit: {
+              type: GraphQLInt,
+              default: 1000
+            }
+          }
+        }
+        // TODO: WIP
+        if (method === 'One') {
+          return {
+            // FilterFindOneXXXInput
+            filter: {type: filterType[think._.camelCase(value)]},
+            skip: {
+              type: GraphQLInt
+            }
+          }
+        }
+        if (method === 'Many') {
+          return {
+            // FilterFindOneXXXInput
+            filter: {type: filterType[think._.camelCase(value)]},
+            skip: {type: GraphQLInt},
+            limit: {
+              type: GraphQLInt,
+              default: 1000
+            }
+          }
+        }
+        if (method === 'Total') {
+          return {
+            // FilterFindOneXXXInput
+            filter: {type: filterType[think._.camelCase(value)]},
+          }
+        }
+        if (method === 'Pagination') {
+          return {
+            page: {
+              type: GraphQLInt
+            },
+            pageSize:{
+              type: GraphQLInt,
+              default: 20
+            },
+            // FilterFindOneXXXInput
+            filter: {type: filterType[think._.camelCase(value)]},
+          }
+        }
+      }
+      const pairs = map(ObjectTypes, (value, key) => {
+          const queryMethods = []
+          suffixMethods.forEach((method) => {
+            // if (think._.indexOf(['ById', 'ByIds', 'One'], method)) {
+            queryMethods.push([
+              `${think._.camelCase(key)}${method}`,
+              {
+                type: _getReturnType(method, value),
+                args: _getQueryArgs(method, value),
+                resolve: (root, {id}) => read(key, id, spaceId)
+              }
+            ])
+            // }
+          })
+          return think._.concat(queryMethods)
+        }
+      )
       // 去除一层数组形成键值对象
       return think._.fromPairs(think._.flatten(pairs))
     }
