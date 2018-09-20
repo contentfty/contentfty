@@ -83,25 +83,6 @@ mutation{
 
 我们使用并推荐使用 Yarn
 
-```shell
-yarn
-yarn bootstrap
-```
+### GraphQL 客户端工具
 
-Linting with ESLint
 
-```shell
-yarn lint
-```
-
-Test with AVA or Jest
-
-```shell
-yarn test
-```
-
-Development mode
-
-```shell
-yarn dev
-```
