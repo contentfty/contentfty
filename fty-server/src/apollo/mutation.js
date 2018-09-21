@@ -1,5 +1,5 @@
 const {isString, fromPairs} = require('lodash')
-const { FieldITC } = require('./inputTypes')
+const { FieldITC } = require('./types/inputTypes')
 
 const {
   GraphQLObjectType,
