@@ -8,8 +8,8 @@ const emptyField = function (field) {
   // return _.isEmpty(field) || _.isUndefined(role) !== _.isEmpty(field[role])
   return null
 }
-const writeEntry = async function (type, data, context) {
-  console.log(type)
+const writeEntry = async function (type, method, data, context) {
+  // console.log(type)
   // console.log(think._.capitalize(type))
   switch (type) {
     case 'User': {
@@ -32,8 +32,6 @@ const writeEntry = async function (type, data, context) {
     }
     default: {
       return await fty.saveEntry(type, data, context.user, context.spaceId)
-      // return await fty.saveEntryContent(data, context.user, context.spaceId)
-      // return null
     }
   }
 }

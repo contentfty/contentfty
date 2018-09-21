@@ -149,42 +149,61 @@ module.exports = class extends think.Service {
    */
   async saveEntryType (record, user, spaceId) {
     // if (think.isEmpty(record.id)) {
-      const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
-      const entrytypeExists = await entryTypeModel.where({name: record.name}).find();
-      if (!think.isEmpty(entrytypeExists)) {
-        throw new Error(`${entrytypeInput.name} already exists!`)
-      }
-      // const contentTypeID = await this.regElement(ElementType.contentType)
+    const camelId = think._.camelCase(record.id)
+    const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
+    const entrytypeExists = await entryTypeModel.where({id: camelId}).find();
+    if (!think.isEmpty(entrytypeExists)) {
+      throw new Error(`${camelId} already exists!`)
+    }
+    // const contentTypeID = await this.regElement(ElementType.contentType)
 
-      // 保存 Fields
-      const fieldsModel = think.model('fields', {spaceId: spaceId})
-      for (let item of record.fields) {
-        item.typeId = record.id
-        item.id = Generate.id()
-        item.createdAt = dateNow()
-        item.updatedAt = dateNow()
+    // 保存 Fields
+    const fieldsModel = think.model('fields', {spaceId: spaceId})
+    for (let fieldItem of record.fields) {
+      fieldItem.typeId = camelId
+      fieldItem.id = Generate.id()
+      fieldItem.createdAt = dateNow()
+      fieldItem.updatedAt = dateNow()
+      // if (fieldItem.type === 'array') {
+      // fieldItem.items = JSON.stringify(fieldItem.items)
+      // }
+      // console.log(record.fields)
+      // console.log('------')
+      // console.log('------')
+      // console.log('------')
+    }
+    for (let field of record.fields) {
+      field.name = think._.camelCase(field.name)
+      if (field.validations) {
+        field.validations = JSON.stringify(field.validations)
+      } else {
+        field.validations = JSON.stringify(new Array())
       }
-      for (let entrytypeField of record.fields) {
-        entrytypeField.name = think._.camelCase(entrytypeField.name)
-        if (entrytypeField.validations) {
-          entrytypeField.validations = JSON.stringify(entrytypeField.validations)
-        } else {
-          entrytypeField.validations = JSON.stringify(new Array())
-        }
+      if (field.items) {
+        field.items = JSON.stringify(field.items)
+      } else {
+        field.items = '{}'
       }
-      const fieldIds = await fieldsModel.addMany(record.fields)
+      if (!field.instructions) {
+        field.instructions = ''
+      }
+      if (!field.linkType) {
+        field.linkType = ''
+      }
+    }
+    const fieldIds = await fieldsModel.addMany(record.fields)
 
-      const saveParams = {
-        id: record.id,
-        name: think._.camelCase(record.name),
-        fields: JSON.stringify(think._.map(record.fields, 'id')),
-        createdBy: user.id,
-        updatedBy: user.id,
-        createdAt: dateNow(),
-        updatedAt: dateNow()
-      }
-      await entryTypeModel.add(saveParams)
-      return saveParams
+    const saveParams = {
+      id: camelId,
+      name: think._.camelCase(record.name),
+      fields: JSON.stringify(think._.map(record.fields, 'id')),
+      createdBy: user.id,
+      updatedBy: user.id,
+      createdAt: dateNow(),
+      updatedAt: dateNow()
+    }
+    await entryTypeModel.add(saveParams)
+    return saveParams
     // } else {
     //   const entryTypeModel = think.model('entrytypes', {spaceId: spaceId})
     //   const entrytypeExists = await entryTypeModel.where({id: record.id}).find()
@@ -530,13 +549,37 @@ module.exports = class extends think.Service {
     }
   }
 
+  async entryCreateMany () {
+  }
+
+  async entryCreate () {
+  }
+
+  async entryUpdateById () {
+  }
+
+  async entryUpdateOne () {
+  }
+
+  async entryUpdateMany () {
+  }
+
+  async entryRemoveById () {
+  }
+
+  async entryRemoveOne () {
+  }
+
+  async entryRemoveMany () {
+  }
+
   /**
    * 保存内容条目 (创建内容条目 and 更新内容条目)
    * @param {*} entryInput
    * @param {*} user
    * @param {*} spaceId
    */
-  async saveEntry (type, entryInput, user, spaceId) {
+  async saveEntry (type, method, entryInput, user, spaceId) {
     if (think.isEmpty(entryInput.id)) {
       // 检测内容类型存在
       const entrytypeModel = think.model('entrytypes', {spaceId: spaceId})
