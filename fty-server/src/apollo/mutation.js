@@ -100,6 +100,10 @@ const ValidationITC = InputTypeComposer.create({
       type: '[String]',
       description: '选项规则,例如多个 Tag'
     },
+    linkContentType: {
+      type: '[String]',
+      description: '引用关系的内容类型'
+    },
     message: {
       type: 'String',
       description: '字段信息'

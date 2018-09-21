@@ -579,6 +579,7 @@ module.exports = class extends think.Service {
         await versionModel.add({
           entryId: id,
           num: maxNum ? maxNum + 1 : 1,
+          // TODO 需要验证检查 Field
           fields: JSON.stringify(entryInput.record),
           // fields: entryInput.fields,
           createdBy: user.id,

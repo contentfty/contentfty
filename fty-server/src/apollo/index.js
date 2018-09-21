@@ -1,7 +1,7 @@
 /* eslint-disable prefer-reflect,prefer-rest-params */
 const {runHttpQuery} = require('apollo-server-core');
 const {buildSchema} = require('../apollo/schema')
-const {makeExecutableSchema} = require('graphql-tools');
+// const {makeExecutableSchema} = require('graphql-tools');
 
 // const {typeDef: Auth, resolvers: authResolvers} = require('./auth')
 
